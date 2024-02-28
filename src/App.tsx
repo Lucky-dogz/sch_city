@@ -3,7 +3,6 @@ import React from 'react';
 import * as THREE from 'three';
 // 引入three.js其他扩展库，对应版本查看文档，最新扩展库在addons文件夹下，eg：'three/addons/controls/OrbitControls.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
-import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader';
 import Player from './components/player';
 import { gui } from './components/common/gui';
 import { Sky } from 'three/examples/jsm/objects/Sky';
@@ -14,14 +13,22 @@ import { creatLoader, loadGltf } from './utils/loadGltf';
 import Animations from './utils/animations';
 import Tween from 'three/examples/jsm/libs/tween.module.js';
 import '@/style/index.less';
+import { GLTF } from 'three/examples/jsm/loaders/GLTFLoader';
+import drawLightLine from './utils/drawLine';
 
 class SchoolController extends React.Component {
+  renderer: null;
+  scene: null;
+  camera: null;
+  mixers: never[];
+  targetLine: null;
   constructor(props) {
     super(props);
     this.renderer = null;
     this.scene = null;
     this.camera = null;
     this.mixers = [];
+    this.targetLine = null;
   }
 
   state = {
@@ -276,20 +283,19 @@ class SchoolController extends React.Component {
 
   // 校园地图加载
   loadMap = () => {
-    loadGltf('school_y.glb').then((gltf: any) => {
+    loadGltf('school.glb').then((gltf: GLTF) => {
       console.log('school', gltf);
       const school_map = gltf.scene;
       this.scene.add(school_map);
       school_map.position.set(0, 0, 0);
       school_map.rotateY(Math.PI);
-
       school_map.traverse((obj) => {
         if (obj.isMesh) {
           obj.castShadow = true;
         }
-
         // console.log(obj);
       });
+      this.addClickSelect();
       // worldOctree.fromGraphNode(school_map);
 
       // const worldOctreeHelper = new OctreeHelper(worldOctree);
@@ -299,6 +305,32 @@ class SchoolController extends React.Component {
       // gui.add({ OctreeDebug: false }, 'OctreeDebug').onChange(function (value) {
       //   worldOctreeHelper.visible = value;
       // });
+    });
+  };
+
+  // 添加鼠标点击交叉事件
+  addClickSelect = () => {
+    const mousePosition = new THREE.Vector2();
+    const rayCaster = new THREE.Raycaster();
+    window.addEventListener('click', (e) => {
+      // 鼠标坐标转换为Webgl标准设备坐标---归一化
+      mousePosition.x = (e.clientX / window.innerWidth) * 2 - 1;
+      mousePosition.y = -(e.clientY / window.innerHeight) * 2 + 1;
+      // 射线计算
+      rayCaster.setFromCamera(mousePosition, this.camera);
+      // 对参数中的网格模型对象进行射线交叉计算，返回交叉选中的对象数组
+      const intersects = rayCaster.intersectObjects(this.scene.children);
+      // 遍历查找对应对象
+      for (let i = 0; i < intersects.length; i++) {
+        if (intersects[i].object.userData.name) {
+          // intersects[i].object.material.color.set('black');
+          let tempObj = intersects[i].object;
+          this.targetLine && this.scene.remove(this.targetLine);
+          this.targetLine = drawLightLine(tempObj);
+          this.scene.add(this.targetLine);
+          break;
+        }
+      }
     });
   };
 

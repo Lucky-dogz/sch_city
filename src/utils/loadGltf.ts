@@ -1,4 +1,4 @@
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
+import { GLTF, GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader';
 import { LoadingManager } from 'three';
@@ -14,8 +14,8 @@ function creatLoader(manager: LoadingManager) {
 }
 
 function loadGltf(url: string) {
-  return new Promise<Object>((resolve, reject) => {
-    loader.load(url, function (gltf) {
+  return new Promise<GLTF>((resolve, reject) => {
+    loader.load(url, function (gltf: GLTF) {
       resolve(gltf);
     });
   });
