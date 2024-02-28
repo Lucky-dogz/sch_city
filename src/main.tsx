@@ -3,11 +3,11 @@ import './index.css';
 import React from 'react';
 import ReactDOM from 'react-dom';
 
-import App from './App';
+import SchoolController from './App';
 
 ReactDOM.render(
   // <React.StrictMode>
-  <App />,
+  <SchoolController />,
   // </React.StrictMode>,
   document.getElementById('root'),
 );
