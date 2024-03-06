@@ -6,6 +6,8 @@
     position: fixed;
     height: 100%;
     width: 100%;
+    top: 0;
+    left: 0;
     z-index: 99;
     background: rgba(46, 66, 77, 0.8);
     filter: drop-shadow(0px 1px 1px rgba(0, 0, 0, 0.25));
@@ -52,49 +54,32 @@
     top: 50%;
     left: 50%;
     z-index: 10;
-    .label {
-      position: absolute;
-      // top: -16px;
-      // left: -16px;
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      background: #00000077;
-      border: 1px solid #ffffff77;
-      color: #ffffff;
-      font-family: Helvetica, Arial, sans-serif;
-      text-align: center;
-      line-height: 32px;
-      font-weight: 100;
-      font-size: 14px;
-      cursor: pointer;
+    .dynamic {
+      position: relative;
+      top: -20px;
+      left: -20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
       transform: scale(0, 0);
       transition: transform 0.3s;
+      cursor: pointer;
+      .label-icon {
+        width: 28px;
+        height: 28px;
+        pointer-events: none;
+      }
+      .name {
+        display: inline-block;
+        color: #000000;
+        font-family: Helvetica, Arial, sans-serif;
+        font-weight: 400;
+        font-size: 10px;
+        pointer-events: none;
+      }
     }
-    .text {
-      position: absolute;
-      top: 30px;
-      left: -120px;
-      width: 200px;
-      padding: 20px;
-      border-radius: 4px;
-      background: rgba(0, 0, 0, 0.6);
-      border: 1px solid #ffffff77;
-      color: #ffffff;
-      line-height: 1.3em;
-      font-family: Helvetica, Arial, sans-serif;
-      font-weight: 100;
-      font-size: 14px;
-      opacity: 0;
-      transition: opacity 0.3s;
-      pointer-events: none;
-      text-align: justify;
-      text-align-last: left;
-    }
-    &:hover .text {
-      opacity: 1;
-    }
-    &.visible .label {
+
+    &.visible .dynamic {
       transform: scale(1, 1);
     }
   }

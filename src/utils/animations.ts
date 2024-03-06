@@ -1,3 +1,4 @@
+import * as THREE from 'three';
 import { Tween, Easing } from 'three/examples/jsm/libs/tween.module.js';
 
 const Animations = {
