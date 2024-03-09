@@ -1,0 +1,62 @@
+@icon: '@/resources/images/';
+
+.routebox {
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  z-index: 10;
+  .routebox-inputs {
+    :global {
+      .ant-select-selector {
+        padding-left: 24px;
+        position: relative;
+        font-size: 12px;
+      }
+      .ant-select-selection-search {
+        inset-inline-start: inherit;
+        inset-inline-end: inherit;
+      }
+    }
+    .finish-select {
+      :global {
+        .ant-select-selector {
+          &::before {
+            position: absolute;
+            left: 4px;
+            top: 6px;
+            content: '';
+            width: 16px;
+            height: 16px;
+            background: url('@{icon}/end.svg');
+            background-size: cover;
+          }
+        }
+      }
+    }
+    .start-select {
+      :global {
+        .ant-select-selector {
+          &::before {
+            position: absolute;
+            left: 4px;
+            top: 6px;
+            content: '';
+            width: 16px;
+            height: 16px;
+            background: url('@{icon}/start.svg');
+            background-size: cover;
+          }
+        }
+      }
+    }
+    .divide-line {
+      display: inline-block;
+      margin: 0 4px;
+      color: #959595;
+    }
+    .find-path-btn {
+      font-size: 12px;
+      margin-left: 10px;
+    }
+  }
+}

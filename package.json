@@ -13,6 +13,7 @@
   "dependencies": {
     "@types/dat.gui": "^0.7.12",
     "@types/lodash": "^4.14.202",
+    "antd": "^5.15.1",
     "classnames": "^2.5.1",
     "dat.gui": "^0.7.9",
     "less": "^4.2.0",

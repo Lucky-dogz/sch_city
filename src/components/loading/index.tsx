@@ -9,6 +9,8 @@ interface Props {
 
 const Loading: React.FC<Props> = ({ progress, moveCamera }) => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [data, setData] = useState<number>(0);
+
   useEffect(() => {
     if (progress === 100) {
       setIsLoading(false);

@@ -1,5 +1,4 @@
-import { getAllNodes } from './helper';
-import _ from 'lodash';
+import _, { has } from 'lodash';
 
 // 初始节点
 // const test = {
@@ -32,12 +31,12 @@ export function astar(grid, start, target, close_set) {
     if (currentNode.id === target.id) return 'success!';
 
     let neighbors = getNeighbors(currentNode, grid);
-    console.log('neighbors', neighbors);
     open_set.push(...neighbors);
-    updateNeighbors(currentNode, neighbors, target);
+    // console.log('hasChanged', _.cloneDeep(hasChanged));
     open_set = open_set.filter(
       (neighbor) => neighbor.status !== 'visited' && neighbor.status !== 'wall',
     );
+    updateNeighbors(currentNode, neighbors, target);
   }
   return false;
 }
@@ -56,7 +55,6 @@ function getClosetNode(open_set: any[]) {
       }
     }
   }
-  console.log(_.cloneDeep(currentClosest));
   open_set.splice(index!, 1);
   return currentClosest;
 }
@@ -91,7 +89,6 @@ function updateNode(currentNode, targetNode, actualTargetNode?) {
 function getNeighbors(node, grid) {
   let neighbors = [];
   const { col, row } = node;
-  console.log(grid);
   if (row > 0) neighbors.push(grid[row - 1][col]);
   if (row < grid.length - 1) neighbors.push(grid[row + 1][col]);
   if (col > 0) neighbors.push(grid[row][col - 1]);
