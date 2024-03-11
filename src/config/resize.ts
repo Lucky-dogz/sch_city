@@ -1,5 +1,6 @@
-import { sizes } from './sizes';
-let camera, renderer;
+let camera,
+  renderer,
+  sizes = {};
 function resizeEvent() {
   // Update sizes
   sizes.width = window.innerWidth;
@@ -18,6 +19,6 @@ export function resizeEventListener(_camera, _renderer) {
   renderer = _renderer;
   window.addEventListener('resize', resizeEvent);
 }
-export function clear() {
+export function removeResizeListener() {
   window.removeEventListener('resize', resizeEvent);
 }

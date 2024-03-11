@@ -20,10 +20,9 @@ const App: React.FC = () => {
   }, [finish?.name]);
 
   const findPath = () => {
-    if (start && finish) {
+    if (start && finish && start.name !== finish.name) {
       if (hasFinded) {
-        school.current.resetGrid();
-        school.current.clearPathGroup();
+        school.current.resetNavigation();
       }
       school.current.startFindPath(start, finish);
       setHasFinded(true);

@@ -291,5 +291,5 @@ function diagonalDistance(nodeOne, nodeTwo) {
   let nodeTwoCoordinates = [nodeTwo.row, nodeTwo.col];
   let dx = Math.abs(nodeOneCoordinates[0] - nodeTwoCoordinates[0]);
   let dy = Math.abs(nodeOneCoordinates[1] - nodeTwoCoordinates[1]);
-  return dx + dy + (Math.sqrt(2) - 2) * Math.min(dx, dy);
+  return dx + dy + (Math.sqrt(2) - 2.5) * Math.min(dx, dy);
 }

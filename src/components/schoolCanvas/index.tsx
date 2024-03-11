@@ -6,10 +6,10 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 // import { gui } from '../common/gui';
 import { Sky } from 'three/examples/jsm/objects/Sky';
 import Stats from 'stats.js';
-import { creatLoader, loadGltf } from '@/utils/loadGltf';
+import { initLoaders, load_gltf, load_texture } from '@/utils/loaders';
 import Animations from '@/utils/animations';
 import Tween from 'three/examples/jsm/libs/tween.module.js';
-import { GLTF, GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
+import { GLTF } from 'three/examples/jsm/loaders/GLTFLoader';
 import { Build, build_data } from '@/config/data';
 import classnames from 'classnames';
 import { sizes, boardConfig } from '@/config/size';
@@ -20,7 +20,8 @@ import _ from 'lodash';
 import Loading from '@/components/loading';
 import { roadPoint } from '@/config/grid';
 import { loadFont, createText } from '@/components/author';
-import { drawPoint, removeObj } from '@/utils';
+import { drawStreamingRoadLight, removeObj } from '@/utils';
+import { removeResizeListener, resizeEventListener } from '@/config/resize';
 
 interface props {
   loadingProcess: number;
@@ -38,11 +39,12 @@ class SchoolCanvas extends React.Component {
   grid: any[][];
   ground: THREE.Mesh;
   colors: any;
-  pathGroup: THREE.Group;
+  roadstreamingLine: THREE.Mesh | undefined;
   road: THREE.Object3D<THREE.Object3DEventMap>;
   redPoint: { row: number; col: number };
   redPointMesh: any;
   stats: Stats;
+  roadLineTexture: any;
   constructor(props: props) {
     super(props);
     this.renderer = null;
@@ -59,8 +61,6 @@ class SchoolCanvas extends React.Component {
     );
     this.redPoint = { row: 400, col: 400 };
     this.redPointMesh = null;
-    this.pathGroup = new THREE.Group();
-    this.pathGroup.name = 'path';
     // 监视器
     this.stats = new Stats();
     this.stats.showPanel(0);
@@ -68,6 +68,7 @@ class SchoolCanvas extends React.Component {
     this.stats.dom.style.right = '10px';
     this.stats.dom.style.bottom = '10px';
     document.body.appendChild(this.stats.dom);
+    this.roadLineTexture = null;
   }
 
   state = {
@@ -82,6 +83,7 @@ class SchoolCanvas extends React.Component {
   }
 
   componentWillUnmount() {
+    removeResizeListener();
     this.setState = () => {
       return;
     };
@@ -91,13 +93,8 @@ class SchoolCanvas extends React.Component {
     const clock = new THREE.Clock();
     this.initBaseScene();
     this.initLight();
-
-    window.addEventListener('resize', () => {
-      this.camera.aspect = window.innerWidth / window.innerHeight;
-      this.camera.updateProjectionMatrix();
-      this.renderer.setSize(window.innerWidth, window.innerHeight);
-    });
     this.addAmbient();
+    resizeEventListener(this.camera, this.renderer);
     // gui
     //   .add({ color: 2 }, 'color', 0, 360)
     //   .name('phi')
@@ -146,30 +143,31 @@ class SchoolCanvas extends React.Component {
       },
     );
     // 初始化加载器
-    creatLoader(manager);
+    initLoaders(manager);
     // 加载地图
-    this.loadMap(manager);
+    this.loadMap();
     // 加载作者文字
-    loadFont(manager);
+    loadFont();
+    this.initGrid();
     // this.loadPlain(manager);
 
-    setTimeout(() => {
-      this.initGrid();
-      //   this.startFindPath();
-      // let res = [];
-      // for (let i = 0; i < this.grid.length; i++) {
-      //   for (let j = 0; j < this.grid[0].length; j++) {
-      //     let obj = this.grid[i][j];
-      //     if (obj.status === 'default') {
-      //       res.push({
-      //         row: obj.row,
-      //         col: obj.col,
-      //       });
-      //     }
-      //   }
-      // }
-      // console.log('res', res);
-    }, 2000);
+    // setTimeout(() => {
+
+    //   //   this.startFindPath();
+    //   // let res = [];
+    //   // for (let i = 0; i < this.grid.length; i++) {
+    //   //   for (let j = 0; j < this.grid[0].length; j++) {
+    //   //     let obj = this.grid[i][j];
+    //   //     if (obj.status === 'default') {
+    //   //       res.push({
+    //   //         row: obj.row,
+    //   //         col: obj.col,
+    //   //       });
+    //   //     }
+    //   //   }
+    //   // }
+    //   // console.log('res', res);
+    // }, 2000);
 
     const animate = () => {
       this.stats && this.stats.update();
@@ -181,6 +179,9 @@ class SchoolCanvas extends React.Component {
         });
       const timer = Date.now() * 0.0005;
       Tween && Tween.update();
+      if (this.roadLineTexture) {
+        this.roadLineTexture.offset.x -= Math.random() / 80;
+      }
       // this.camera && (this.camera.position.y += Math.sin(timer) * 0.05);
       // 不断检查交互点
       //   this.checkPointShow();
@@ -215,8 +216,6 @@ class SchoolCanvas extends React.Component {
     // 添加坐标系
     const axesHelper = new THREE.AxesHelper(500);
     this.scene.add(axesHelper);
-    // 添加路径高亮显示组
-    this.scene.add(this.pathGroup);
   };
 
   initLight = () => {
@@ -298,58 +297,11 @@ class SchoolCanvas extends React.Component {
     Animations.animateCamera(
       this.camera,
       this.controls,
-      { x: 110, y: 230, z: 60 },
-      { x: 50, y: 0, z: -50 },
+      { x: 110, y: 250, z: 100 },
+      { x: 0, y: 0, z: -50 },
       2800,
       () => {
         this.setState({ sceneReady: true });
-      },
-    );
-  };
-
-  // 加载平面
-  loadPlain = (manager: THREE.LoadingManager | undefined) => {
-    // Ground
-    let gridWidth = boardConfig.cols * boardConfig.nodeDimensions.width,
-      gridHeight = boardConfig.rows * boardConfig.nodeDimensions.height;
-    let groundGeometry = new THREE.PlaneGeometry(
-      gridWidth,
-      gridHeight,
-      gridWidth,
-      gridHeight,
-    );
-    groundGeometry.rotateX(-Math.PI / 2);
-    let loader = new THREE.TextureLoader(manager);
-    loader.load(
-      'src/resources/textures/ground.png',
-      (texture) => {
-        texture.wrapS = THREE.RepeatWrapping;
-        texture.wrapT = THREE.RepeatWrapping;
-        texture.repeat.x = boardConfig.rows;
-        texture.repeat.y = boardConfig.cols;
-        var groundMaterial = new THREE.MeshLambertMaterial({
-          map: texture,
-          side: THREE.FrontSide,
-          vertexColors: false,
-        });
-        this.ground = new THREE.Mesh(groundGeometry, groundMaterial);
-        this.ground.position.y = 0.3;
-        // this.scene.add(this.ground);
-        this.ground.position.set(50, 0, -70);
-        // Grid helper
-        var size = boardConfig.cols * boardConfig.nodeDimensions.height;
-        var divisions = boardConfig.cols;
-        var gridHelper = new THREE.GridHelper(size, divisions, 0x5c78bd, 0x5c78bd);
-        gridHelper.position.set(
-          this.ground.position.x,
-          this.ground.position.y + 0.05,
-          this.ground.position.z,
-        );
-        this.scene.add(gridHelper);
-      },
-      undefined,
-      function (error) {
-        console.log(error);
       },
     );
   };
@@ -360,24 +312,21 @@ class SchoolCanvas extends React.Component {
     // let raycaster = new THREE.Raycaster();
     // 垂直向下向量
     // let direction = new THREE.Vector3(0, -1, 0);
-    let count = 0;
     for (let i = 0; i < roadPoint.length; i++) {
       let row = roadPoint[i].row;
       let col = roadPoint[i].col;
       this.grid[row][col] = this.createNode(row, col, 'default');
-      ++count;
     }
     for (let i = 0; i < boardConfig.rows; i++) {
       for (let j = 0; j < boardConfig.cols; j++) {
         if (!this.grid[i][j]) {
           this.grid[i][j] = this.createNode(i, j, 'wall');
-          ++count;
         }
       }
     }
-    this.setState({
-      dataInitProgress: Math.floor((count / (boardConfig.cols * boardConfig.rows)) * 100),
-    });
+    // this.setState({
+    //   dataInitProgress: Math.floor((count / (boardConfig.cols * boardConfig.rows)) * 100),
+    // });
   };
 
   // 创建节点
@@ -419,8 +368,8 @@ class SchoolCanvas extends React.Component {
     return node;
   };
 
-  // 重置节点
-  resetGrid = () => {
+  resetNavigation = () => {
+    // 重置节点
     for (let i = 0; i < roadPoint.length; i++) {
       let row = roadPoint[i].row;
       let col = roadPoint[i].col;
@@ -434,6 +383,13 @@ class SchoolCanvas extends React.Component {
         previousNode: null,
       });
     }
+    //  清除流光线路
+    console.log('清理线路');
+    this.scene.remove(this.roadstreamingLine);
+    // removeObj(this.roadstreamingLine);
+    this.roadLineTexture = null;
+    this.roadstreamingLine = null;
+    // console.log('清除roadstreamingLine后：', this.roadstreamingLine);
   };
 
   // 初始化墙
@@ -453,18 +409,55 @@ class SchoolCanvas extends React.Component {
     return 'wall';
   };
 
-  //  清除道路物体
-  clearPathGroup = () => {
-    console.log('清理线路');
-    // 递归遍历组对象group释放所有后代网格模型绑定几何体占用内存
-    console.log(this.pathGroup);
-    removeObj(this.pathGroup);
+  // 加载平面
+  loadPlain = () => {
+    // Ground
+    let gridWidth = boardConfig.cols * boardConfig.nodeDimensions.width,
+      gridHeight = boardConfig.rows * boardConfig.nodeDimensions.height;
+    let groundGeometry = new THREE.PlaneGeometry(
+      gridWidth,
+      gridHeight,
+      gridWidth,
+      gridHeight,
+    );
+    groundGeometry.rotateX(-Math.PI / 2);
+    load_texture.load(
+      'ground.png',
+      (texture) => {
+        texture.wrapS = THREE.RepeatWrapping;
+        texture.wrapT = THREE.RepeatWrapping;
+        texture.repeat.x = boardConfig.rows;
+        texture.repeat.y = boardConfig.cols;
+        var groundMaterial = new THREE.MeshLambertMaterial({
+          map: texture,
+          side: THREE.FrontSide,
+          vertexColors: false,
+        });
+        this.ground = new THREE.Mesh(groundGeometry, groundMaterial);
+        this.ground.position.y = 0.3;
+        // this.scene.add(this.ground);
+        this.ground.position.set(50, 0, -70);
+        // Grid helper
+        var size = boardConfig.cols * boardConfig.nodeDimensions.height;
+        var divisions = boardConfig.cols;
+        var gridHelper = new THREE.GridHelper(size, divisions, 0x5c78bd, 0x5c78bd);
+        gridHelper.position.set(
+          this.ground.position.x,
+          this.ground.position.y + 0.05,
+          this.ground.position.z,
+        );
+        this.scene.add(gridHelper);
+      },
+      undefined,
+      function (error) {
+        console.log(error);
+      },
+    );
   };
 
   // 校园地图加载
-  loadMap = (manager: THREE.LoadingManager | undefined) => {
-    const loader = new GLTFLoader(manager).setPath('src/resources/models/');
-    loader.load('school.glb', (gltf: GLTF) => {
+  loadMap = () => {
+    load_gltf.load('school.glb', (gltf: GLTF) => {
       console.log('校园地图加载完毕：', gltf);
       const school_map = gltf.scene;
       school_map.position.set(0, 0, 0);
@@ -514,34 +507,39 @@ class SchoolCanvas extends React.Component {
     }
     // 最短距离节点集合
     const nodesInShortestPathOrder = getNodesInShortestPathOrder(finishNode);
-    console.log(nodesInShortestPathOrder);
+    console.log('length', nodesInShortestPathOrder.length);
+
     this.animatePath(nodesToAnimate, nodesInShortestPathOrder, 50);
   };
 
   // 画出最短路径
   animatePath = (visitedNodesInOrder, nodesInShortestPathOrder, timerDelay) => {
-    for (let i = 0; i < nodesInShortestPathOrder.length; i++) {
-      // if (i === visitedNodesInOrder.length) {
-      //   setTimeout(() => {
-      //     this.animateShortestPath(nodesInShortestPathOrder, 5 * timerDelay);
-      //   }, timerDelay * i);
-      //   return;
-      // }
-      // if (
-      //   (visitedNodesInOrder[i].row == this.props.start.coordinate.row &&
-      //     visitedNodesInOrder[i].col == this.props.start.coordinate.col) ||
-      //   (visitedNodesInOrder[i].row == this.props.finish.coordinate.row &&
-      //     visitedNodesInOrder[i].col == this.props.finish.coordinate.col)
-      // ) {
-      //   continue;
-      // }
-      setTimeout(() => {
-        const node = nodesInShortestPathOrder[i];
-        let p = drawPoint(node.row, node.col, 0xff0000);
-        this.pathGroup.add(p);
-        if (!node) return;
-      }, timerDelay * i);
-    }
+    const { mesh, texture } = drawStreamingRoadLight(nodesInShortestPathOrder);
+    this.roadstreamingLine = mesh;
+    this.scene.add(this.roadstreamingLine);
+    this.roadLineTexture = texture;
+    // for (let i = 0; i < nodesInShortestPathOrder.length; i++) {
+    // if (i === visitedNodesInOrder.length) {
+    //   setTimeout(() => {
+    //     this.animateShortestPath(nodesInShortestPathOrder, 5 * timerDelay);
+    //   }, timerDelay * i);
+    //   return;
+    // }
+    // if (
+    //   (visitedNodesInOrder[i].row == this.props.start.coordinate.row &&
+    //     visitedNodesInOrder[i].col == this.props.start.coordinate.col) ||
+    //   (visitedNodesInOrder[i].row == this.props.finish.coordinate.row &&
+    //     visitedNodesInOrder[i].col == this.props.finish.coordinate.col)
+    // ) {
+    //   continue;
+    // }
+    //   setTimeout(() => {
+    //     const node = nodesInShortestPathOrder[i];
+    //     let p = drawPoint(node.row, node.col, 0xff0000);
+    //     this.streamingLine.add(p);
+    //     if (!node) return;
+    //   }, timerDelay * i);
+    // }
   };
 
   // 初始化导览交互点
@@ -643,8 +641,7 @@ class SchoolCanvas extends React.Component {
       <div ref={this.container} className="school">
         <canvas className="webgl"></canvas>
         {/* 进度条 */}
-        <Loading progress={this.state.dataInitProgress} moveCamera={this.moveCamera} />
-
+        <Loading progress={this.state.loadingProcess} moveCamera={this.moveCamera} />
         {/* copyright */}
         <a
           className="github"

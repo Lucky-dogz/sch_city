@@ -3,7 +3,7 @@ import { Octree } from 'three/examples/jsm/math/Octree';
 import { OctreeHelper } from 'three/examples/jsm/helpers/OctreeHelper';
 import { Capsule } from 'three/examples/jsm/math/Capsule';
 import capsuleHelper from './capsuleHelper';
-import loadGltf from '@/utils/loadGltf';
+import loadGltf from '@/utils/loaders';
 import { scene } from './common/scene';
 import { GLTF } from 'three/examples/jsm/loaders/GLTFLoader';
 import creatLoader from './base/loader';

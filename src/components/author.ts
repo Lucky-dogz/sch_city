@@ -1,6 +1,7 @@
+import { load_font } from '@/utils/loaders';
 import * as THREE from 'three';
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry';
-import { Font, FontLoader } from 'three/examples/jsm/loaders/FontLoader';
+import { Font } from 'three/examples/jsm/loaders/FontLoader';
 
 let authorMesh, textMesh2, textGeo, materials: THREE.MeshPhongMaterial[];
 
@@ -41,14 +42,10 @@ materials = [
   new THREE.MeshPhongMaterial({ color: 0xffffff }), // side
 ];
 
-function loadFont(manager: THREE.LoadingManager | undefined) {
-  const loader = new FontLoader(manager).setPath('src/resources/');
-  loader.load(
-    'fonts/' + fontName + '_' + fontWeight + '.typeface.json',
-    function (response) {
-      font = response;
-    },
-  );
+function loadFont() {
+  load_font.load(fontName + '_' + fontWeight + '.typeface.json', function (response) {
+    font = response;
+  });
 }
 
 function createText() {

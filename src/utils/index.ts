@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import { Line2 } from 'three/examples/jsm/lines/Line2';
 import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry';
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial';
+import { load_texture } from './loaders';
 
 // 世界坐标转换成二维坐标
 export const vectorToCoord = (x: number, z: number) => {
@@ -46,6 +47,7 @@ export const drawLine = () => {
   // this.scene.add(pathCurveMesh);
 };
 
+// 画垂直光线
 export const drawLightLine = (tempObj: THREE.Object3D) => {
   // 画光束
   const worldPosition = new THREE.Vector3();
@@ -71,24 +73,63 @@ export const drawLightLine = (tempObj: THREE.Object3D) => {
   return line;
 };
 
+// 流光效果
+export const drawStreamingRoadLight = (road: []) => {
+  let imgUrl = 'line1';
+  // 纹理
+  load_texture.load(`line/${imgUrl}.png`, function (tex) {
+    tex.needsUpdate = true;
+    tex.wrapS = THREE.RepeatWrapping;
+    tex.wrapT = THREE.RepeatWrapping;
+    tex.repeat.set(1, 1);
+  });
+  // 材质
+  let material = new THREE.MeshBasicMaterial({
+    map: texture,
+    side: THREE.DoubleSide,
+    transparent: true,
+  });
+
+  let points: THREE.Vector3[] = [];
+
+  road.forEach((item: any) => {
+    points.push(new THREE.Vector3(item.col - 350, 0.5, item.row - 470));
+  });
+
+  // 曲线
+  let curve = new THREE.CatmullRomCurve3(points);
+  // 创建管道
+  let tubeGeometry = new THREE.TubeGeometry(curve, 100, 0.5, 20);
+  let mesh = new THREE.Mesh(tubeGeometry, material);
+  return {
+    mesh,
+    texture,
+  };
+};
+
 const clearCache = (item) => {
   item.geometry.dispose();
   item.material.dispose();
 };
 
-export const removeObj = (obj: THREE.Group | THREE.Object3D) => {
+export const removeObj = (obj: any) => {
   // 递归释放物体下的 几何体 和 材质
-  let arr = obj.children.filter((x) => x);
-  arr.forEach((item) => {
-    if (item.children.length) {
-      removeObj(item);
-    } else {
-      clearCache(item);
-      item.clear();
-    }
-  });
+  if (obj.children.length) {
+    let arr = obj.children.filter((x) => x);
+    arr.forEach((item) => {
+      if (item.children.length) {
+        removeObj(item);
+      } else {
+        clearCache(item);
+        item.clear();
+      }
+    });
+    arr = null;
+  } else {
+    clearCache(obj);
+  }
   obj.clear();
-  arr = null;
+  console.log('obj', obj);
 };
 
 // initGroundColor = (groundGeometry, texture) => {
