@@ -20,7 +20,7 @@ import _ from 'lodash';
 import Loading from '@/components/loading';
 import { roadPoint } from '@/config/grid';
 import { loadFont, createText } from '@/components/author';
-import { drawStreamingRoadLight, removeObj } from '@/utils';
+import { drawPoint, drawStreamingRoadLight, removeObj } from '@/utils';
 import { removeResizeListener, resizeEventListener } from '@/config/resize';
 
 interface props {
@@ -111,8 +111,8 @@ class SchoolCanvas extends React.Component {
     //     sun.setFromSphericalCoords(1, phi, theta);
     //     sky.material.uniforms['sunPosition'].value.copy(sun);
     //   });
-    // this.redPointMesh = drawPoint(this.redPoint.row, this.redPoint.col, 'red');
-    // this.scene.add(this.redPointMesh);
+    this.redPointMesh = drawPoint(400, 400, 'red');
+    this.scene.add(this.redPointMesh);
     // gui
     //   .add(this.redPoint, 'row', 0, 799, 1)
     //   .name('row')
@@ -220,10 +220,10 @@ class SchoolCanvas extends React.Component {
 
   initLight = () => {
     // 环境光
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 2);
     this.scene.add(ambientLight);
     // 平行光
-    const directLight = new THREE.DirectionalLight(0xffffff, 0);
+    const directLight = new THREE.DirectionalLight(0xffffff, 4);
     directLight.position.set(10, 0, 200);
     this.scene.add(directLight);
 
@@ -457,7 +457,7 @@ class SchoolCanvas extends React.Component {
 
   // 校园地图加载
   loadMap = () => {
-    load_gltf.load('school.glb', (gltf: GLTF) => {
+    load_gltf.load('school_01.glb', (gltf: GLTF) => {
       console.log('校园地图加载完毕：', gltf);
       const school_map = gltf.scene;
       school_map.position.set(0, 0, 0);
@@ -547,7 +547,7 @@ class SchoolCanvas extends React.Component {
     let guideInfo: any = null;
     build_data.forEach((obj) => {
       // 获取建筑相关信息
-      if (obj.name === mesh.userData.name) {
+      if (obj.name === mesh.name) {
         guideInfo = obj;
       }
     });

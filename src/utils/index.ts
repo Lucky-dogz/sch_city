@@ -76,8 +76,10 @@ export const drawLightLine = (tempObj: THREE.Object3D) => {
 // 流光效果
 export const drawStreamingRoadLight = (road: []) => {
   let imgUrl = 'line1';
+  let texture;
   // 纹理
   load_texture.load(`line/${imgUrl}.png`, function (tex) {
+    texture = tex;
     tex.needsUpdate = true;
     tex.wrapS = THREE.RepeatWrapping;
     tex.wrapT = THREE.RepeatWrapping;

@@ -9,7 +9,21 @@ const App: React.FC = () => {
   const [start, setStart] = useState<Build>();
   const [finish, setFinish] = useState<Build>();
   const [hasFinded, setHasFinded] = useState<boolean>(false);
+  // const [currentGeo,setCurrentGeo] = useState({
+  //   latitude:,
+  //   longitude:
+  // })
   const school = useRef(null);
+
+  // useEffect(() => {
+  //   navigator.geolocation.getCurrentPosition((position) => {
+  //     console.log('positon', position);
+  //     // setPosition({
+  //     //   latitude: position.coords.latitude,
+  //     //   longitude: position.coords.longitude,
+  //     // });
+  //   });
+  // }, []);
 
   useEffect(() => {
     console.log('start', start);
@@ -21,9 +35,7 @@ const App: React.FC = () => {
 
   const findPath = () => {
     if (start && finish && start.name !== finish.name) {
-      if (hasFinded) {
-        school.current.resetNavigation();
-      }
+      hasFinded && school.current.resetNavigation();
       school.current.startFindPath(start, finish);
       setHasFinded(true);
     }

@@ -3,6 +3,7 @@ import { Input, Select, Button } from 'antd';
 import classNames from 'classnames';
 import styles from './index.module.less';
 import { Build, search_build } from '@/config/data';
+import loadBMap from '@/utils/loadBMap';
 
 interface Props {
   start: Build | undefined;
@@ -21,6 +22,51 @@ const OperateBorad: React.FC<Props> = ({
 }) => {
   const [startOptions, setStartOptions] = useState<Build[]>([]);
   const [finishOptions, setFinishOptions] = useState<Build[]>([]);
+  const [positon, setPosition] = useState({});
+  // const [BMapLoaded, setBMapLoaded] = useState<boolean>(false);
+
+  // useEffect(() => {
+  //   window.initBMap = () => {
+  //     setBMapLoaded(true);
+  //     //获取当前位置
+  //     const BMap = window.BMapGL;
+  //     console.log('BMap', BMap);
+  //     const geolocation = new BMap.Geolocation();
+  //     geolocation.getCurrentPosition(
+  //       function (r) {
+  //         console.log('r', r);
+  //         setPosition({
+  //           latitude: r.latitude,
+  //           longitude: r.longitude,
+  //         });
+  //         // let mk = new BMap.Marker(r.point);
+  //         // getAddress(r.point);
+  //       },
+  //       {
+  //         enableHighAccuracy: true,
+  //         maximumAge: 0,
+  //       },
+  //     );
+  //     //获取地址信息，设置地址label
+  //     // function getAddress(point) {
+  //     //   var gc = new BMap.Geocoder();
+  //     //   gc.getLocation(point, function (rs) {
+  //     //     var addComp = rs.addressComponents;
+  //     //     var address =
+  //     //       addComp.province +
+  //     //       addComp.city +
+  //     //       addComp.district +
+  //     //       addComp.street +
+  //     //       addComp.streetNumber; //获取地址
+  //     //     console.log(address);
+  //     //   });
+  //     // }
+  //   };
+  //   loadBMap();
+  //   navigator.geolocation.getCurrentPosition((position) => {
+  //     console.log('positon', position);
+  //   });
+  // }, []);
 
   // 模糊搜索
   const handleSearch = (type: 0 | 1, value: string) => {
@@ -57,6 +103,9 @@ const OperateBorad: React.FC<Props> = ({
   return (
     <div className={styles.routebox}>
       <div className={styles.routeboxInputs}>
+        {/* <div>
+          当前经纬度：{positon.latitude} {positon.longitude}
+        </div> */}
         {/* 起点 */}
         <Select
           className={styles.startSelect}
