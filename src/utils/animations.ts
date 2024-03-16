@@ -3,7 +3,7 @@ import { Tween, Easing } from 'three/examples/jsm/libs/tween.module.js';
 
 const Animations = {
   //相机移动实现漫游等动画
-  animateCamera: (camera, controls, newP, newT, time = 2000, callBack) => {
+  animateCamera: (camera, controls, newP, newT, time = 2000, callBack?) => {
     var tween = new Tween({
       x1: camera.position.x, // 相机x
       y1: camera.position.y, // 相机y
@@ -34,7 +34,7 @@ const Animations = {
     });
     tween.onComplete(function () {
       controls.enabled = true;
-      callBack();
+      callBack && callBack();
     });
     tween.easing(Easing.Cubic.InOut);
     tween.start();

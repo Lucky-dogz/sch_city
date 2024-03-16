@@ -101,60 +101,63 @@ const OperateBorad: React.FC<Props> = ({
   };
 
   return (
-    <div className={styles.routebox}>
-      <div className={styles.routeboxInputs}>
-        {/* <div>
+    <>
+      {/* 顶部操作栏 */}
+      <div className={styles.routeBox}>
+        <div className={styles.routeboxInputs}>
+          {/* <div>
           当前经纬度：{positon.latitude} {positon.longitude}
         </div> */}
-        {/* 起点 */}
-        <Select
-          className={styles.startSelect}
-          style={{ width: 200 }}
-          showSearch
-          value={start && start.name}
-          placeholder="输入并选择起点"
-          defaultActiveFirstOption={true}
-          suffixIcon={null}
-          onSearch={(value) => handleSearch(0, value)}
-          onSelect={(label) => {
-            handleSelect(0, label);
-          }}
-          notFoundContent={null}
-          options={(startOptions || []).map((d) => ({
-            value: d.name,
-            label: d.name,
-          }))}
-        />
-        <span className={styles.divideLine}>—</span>
-        {/* 终点 */}
-        <Select
-          className={styles.finishSelect}
-          style={{ width: 200 }}
-          showSearch
-          value={finish && finish.name}
-          placeholder="输入并选择终点"
-          defaultActiveFirstOption={true}
-          suffixIcon={null}
-          onSearch={(value) => handleSearch(1, value)}
-          onSelect={(label) => {
-            handleSelect(1, label);
-          }}
-          notFoundContent={null}
-          options={(finishOptions || []).map((d) => ({
-            value: d.name,
-            label: d.name,
-          }))}
-        />
-        <Button
-          className={styles.findPathBtn}
-          onClick={findPath}
-          size="middle"
-          type="primary"
-        >
-          开始寻路
-        </Button>
+          {/* 起点 */}
+          <Select
+            className={styles.startSelect}
+            style={{ width: 200 }}
+            showSearch
+            value={start && start.name}
+            placeholder="输入并选择起点"
+            defaultActiveFirstOption={true}
+            suffixIcon={null}
+            onSearch={(value) => handleSearch(0, value)}
+            onSelect={(label) => {
+              handleSelect(0, label);
+            }}
+            notFoundContent={null}
+            options={(startOptions || []).map((d) => ({
+              value: d.name,
+              label: d.name,
+            }))}
+          />
+          <span className={styles.divideLine}>—</span>
+          {/* 终点 */}
+          <Select
+            className={styles.finishSelect}
+            style={{ width: 200 }}
+            showSearch
+            value={finish && finish.name}
+            placeholder="输入并选择终点"
+            defaultActiveFirstOption={true}
+            suffixIcon={null}
+            onSearch={(value) => handleSearch(1, value)}
+            onSelect={(label) => {
+              handleSelect(1, label);
+            }}
+            notFoundContent={null}
+            options={(finishOptions || []).map((d) => ({
+              value: d.name,
+              label: d.name,
+            }))}
+          />
+          <Button
+            className={styles.findPathBtn}
+            onClick={findPath}
+            size="middle"
+            type="primary"
+          >
+            开始寻路
+          </Button>
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 

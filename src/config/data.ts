@@ -82,7 +82,7 @@ const build_data: Build[] = [
   },
   {
     name: '南门保安亭',
-    type: 'dorm',
+    type: 'safe',
     coordinate: {
       row: 640,
       col: 374,
@@ -90,7 +90,7 @@ const build_data: Build[] = [
   },
   {
     name: '北门保安亭',
-    type: 'dorm',
+    type: 'safe',
     coordinate: {
       row: 0,
       col: 0,
@@ -98,7 +98,7 @@ const build_data: Build[] = [
   },
   {
     name: '篮球场',
-    type: 'dorm',
+    type: 'sport',
     coordinate: {
       row: 0,
       col: 0,
@@ -106,7 +106,7 @@ const build_data: Build[] = [
   },
   {
     name: '羽毛球馆',
-    type: 'dorm',
+    type: 'sport',
     coordinate: {
       row: 0,
       col: 0,
@@ -114,7 +114,7 @@ const build_data: Build[] = [
   },
   {
     name: '体育馆',
-    type: 'dorm',
+    type: 'sport',
     coordinate: {
       row: 0,
       col: 0,
@@ -122,7 +122,7 @@ const build_data: Build[] = [
   },
   {
     name: '网球场',
-    type: 'dorm',
+    type: 'sport',
     coordinate: {
       row: 0,
       col: 0,
@@ -130,7 +130,7 @@ const build_data: Build[] = [
   },
   {
     name: '新楼',
-    type: 'dorm',
+    type: 'study',
     coordinate: {
       row: 0,
       col: 0,
@@ -138,7 +138,7 @@ const build_data: Build[] = [
   },
   {
     name: '乒乓球馆',
-    type: 'dorm',
+    type: 'sport',
     coordinate: {
       row: 0,
       col: 0,
@@ -146,7 +146,7 @@ const build_data: Build[] = [
   },
   {
     name: '操场',
-    type: 'dorm',
+    type: 'sport',
     coordinate: {
       row: 0,
       col: 0,
@@ -154,7 +154,7 @@ const build_data: Build[] = [
   },
   {
     name: '综合楼',
-    type: 'dorm',
+    type: 'study',
     coordinate: {
       row: 519,
       col: 238,
@@ -162,7 +162,7 @@ const build_data: Build[] = [
   },
   {
     name: '软件学院',
-    type: 'dorm',
+    type: 'study',
     coordinate: {
       row: 615,
       col: 255,
@@ -170,7 +170,7 @@ const build_data: Build[] = [
   },
   {
     name: '北斗研究院',
-    type: 'dorm',
+    type: 'study',
     coordinate: {
       row: 442,
       col: 345,
@@ -178,7 +178,7 @@ const build_data: Build[] = [
   },
   {
     name: '图书馆',
-    type: 'dorm',
+    type: 'library',
     coordinate: {
       row: 412,
       col: 220,
@@ -186,7 +186,7 @@ const build_data: Build[] = [
   },
   {
     name: '会议圆厅',
-    type: 'dorm',
+    type: 'meeting',
     coordinate: {
       row: 415,
       col: 405,
@@ -194,15 +194,31 @@ const build_data: Build[] = [
   },
   {
     name: '信息楼',
-    type: 'dorm',
+    type: 'study',
     coordinate: {
       row: 414,
       col: 312,
     },
   },
   {
-    name: '教学楼',
-    type: 'dorm',
+    name: '教学楼_A',
+    type: 'study',
+    coordinate: {
+      row: 0,
+      col: 0,
+    },
+  },
+  {
+    name: '教学楼_B',
+    type: 'study',
+    coordinate: {
+      row: 0,
+      col: 0,
+    },
+  },
+  {
+    name: '教学楼_C',
+    type: 'study',
     coordinate: {
       row: 0,
       col: 0,
@@ -210,7 +226,7 @@ const build_data: Build[] = [
   },
   {
     name: '停车棚',
-    type: 'dorm',
+    type: 'public',
     coordinate: {
       row: 445,
       col: 415,
@@ -258,8 +274,10 @@ const build_data: Build[] = [
   },
 ];
 
-const buildNameList = build_data.map((obj) => {
-  return obj.name;
+const buildNameMap = new Map();
+
+build_data.forEach((obj) => {
+  buildNameMap.set(obj.name, 1);
 });
 
 const search_build = (keyword: string) => {
@@ -270,4 +288,4 @@ const search_build = (keyword: string) => {
   });
 };
 
-export { build_data, buildNameList, search_build };
+export { build_data, buildNameMap, search_build };

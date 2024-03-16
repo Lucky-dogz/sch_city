@@ -1,0 +1,85 @@
+.school {
+  height: 100%;
+  width: 100%;
+  .loading {
+    position: fixed;
+    height: 100%;
+    width: 100%;
+    top: 0;
+    left: 0;
+    z-index: 99;
+    background: rgba(46, 66, 77, 0.8);
+    filter: drop-shadow(0px 1px 1px rgba(0, 0, 0, 0.25));
+    backdrop-filter: blur(10px);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    .progress {
+      font-size: 3.6rem;
+      color: #ffffff;
+      text-shadow: 0 1px 0 hsl(174, 5%, 80%), 0 2px 0 hsl(174, 5%, 75%),
+        0 3px 0 hsl(174, 5%, 70%), 0 4px 0 hsl(174, 5%, 66%), 0 5px 0 hsl(174, 5%, 64%),
+        0 6px 0 hsl(174, 5%, 62%), 0 7px 0 hsl(174, 5%, 61%), 0 8px 0 hsl(174, 5%, 60%),
+        0 0 5px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.2),
+        0 3px 5px rgba(0, 0, 0, 0.2), 0 5px 10px rgba(0, 0, 0, 0.2),
+        0 10px 10px rgba(0, 0, 0, 0.2), 0 20px 20px rgba(0, 0, 0, 0.3);
+    }
+  }
+
+  .github {
+    position: fixed;
+    bottom: 16px;
+    left: 16px;
+    z-index: 11;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    flex-direction: column;
+    flex-wrap: wrap;
+    opacity: 0.5;
+    text-decoration: none;
+    .author {
+      font-size: 14px;
+      color: rgba(255, 255, 255, 1);
+      margin-top: 4px;
+      font-style: none;
+      font-weight: normal;
+      text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
+    }
+  }
+
+  .point {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    z-index: 1;
+    .dynamic {
+      position: relative;
+      top: -20px;
+      left: -20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transform: scale(0, 0);
+      transition: transform 0.3s;
+      cursor: pointer;
+      .label-icon {
+        width: 28px;
+        height: 28px;
+        pointer-events: none;
+      }
+      .name {
+        display: inline-block;
+        color: #000000;
+        font-family: Helvetica, Arial, sans-serif;
+        font-weight: 400;
+        font-size: 10px;
+        pointer-events: none;
+      }
+    }
+
+    &.visible .dynamic {
+      transform: scale(1, 1);
+    }
+  }
+}

@@ -1,4 +1,5 @@
-import '@/style/index.less';
+// import '@/style/index.less';
+import './index.less';
 import React from 'react';
 import * as THREE from 'three';
 // 引入three.js其他扩展库，对应版本查看文档，最新扩展库在addons文件夹下，eg：'three/addons/controls/OrbitControls.js';
@@ -10,9 +11,8 @@ import { initLoaders, load_gltf, load_texture } from '@/utils/loaders';
 import Animations from '@/utils/animations';
 import Tween from 'three/examples/jsm/libs/tween.module.js';
 import { GLTF } from 'three/examples/jsm/loaders/GLTFLoader';
-import { Build, build_data } from '@/config/data';
+import { Build, buildNameMap, build_data } from '@/config/data';
 import classnames from 'classnames';
-import { sizes, boardConfig } from '@/config/size';
 import locIcon from '@/resources/images/loc-icon.svg';
 import { getNodesInShortestPathOrder } from '@/findPath/helper';
 import { astar } from '@/findPath/astar';
@@ -20,8 +20,13 @@ import _ from 'lodash';
 import Loading from '@/components/loading';
 import { roadPoint } from '@/config/grid';
 import { loadFont, createText } from '@/components/author';
-import { drawPoint, drawStreamingRoadLight, removeObj } from '@/utils';
-import { removeResizeListener, resizeEventListener } from '@/config/resize';
+import { drawStreamingRoadLight, removeObj } from '@/utils';
+import {
+  removeResizeListener,
+  resizeEventListener,
+  sizes,
+  boardConfig,
+} from '@/config/resize';
 
 interface props {
   loadingProcess: number;
@@ -38,13 +43,14 @@ class SchoolCanvas extends React.Component {
   controls: null;
   grid: any[][];
   ground: THREE.Mesh;
-  colors: any;
   roadstreamingLine: THREE.Mesh | undefined;
   road: THREE.Object3D<THREE.Object3DEventMap>;
   redPoint: { row: number; col: number };
   redPointMesh: any;
   stats: Stats;
   roadLineTexture: any;
+  Pointer: THREE.Vector2;
+  HOVERED: any;
   constructor(props: props) {
     super(props);
     this.renderer = null;
@@ -66,9 +72,11 @@ class SchoolCanvas extends React.Component {
     this.stats.showPanel(0);
     this.stats.dom.style.inset = '';
     this.stats.dom.style.right = '10px';
-    this.stats.dom.style.bottom = '10px';
+    this.stats.dom.style.top = '10px';
     document.body.appendChild(this.stats.dom);
     this.roadLineTexture = null;
+    this.Pointer = new THREE.Vector2();
+    this.HOVERED = null;
   }
 
   state = {
@@ -111,8 +119,8 @@ class SchoolCanvas extends React.Component {
     //     sun.setFromSphericalCoords(1, phi, theta);
     //     sky.material.uniforms['sunPosition'].value.copy(sun);
     //   });
-    this.redPointMesh = drawPoint(400, 400, 'red');
-    this.scene.add(this.redPointMesh);
+    // this.redPointMesh = drawPoint(400, 400, 'red');
+    // this.scene.add(this.redPointMesh);
     // gui
     //   .add(this.redPoint, 'row', 0, 799, 1)
     //   .name('row')
@@ -131,8 +139,6 @@ class SchoolCanvas extends React.Component {
     const manager = new THREE.LoadingManager(
       () => {
         console.log('资源加载完毕！');
-        // 添加建筑物点击事件
-        this.addBuildClickSelect();
         const authorMesh = createText();
         authorMesh.position.set(200, 0, 150);
         this.scene.add(authorMesh);
@@ -149,6 +155,8 @@ class SchoolCanvas extends React.Component {
     // 加载作者文字
     loadFont();
     this.initGrid();
+    // 添加鼠标悬浮事件
+    this.addPointerHover();
     // this.loadPlain(manager);
 
     // setTimeout(() => {
@@ -183,8 +191,13 @@ class SchoolCanvas extends React.Component {
         this.roadLineTexture.offset.x -= Math.random() / 80;
       }
       // this.camera && (this.camera.position.y += Math.sin(timer) * 0.05);
-      // 不断检查交互点
-      //   this.checkPointShow();
+      // 当所有场景都准备好后
+      if (this.state.sceneReady) {
+        // 不断检查交互点
+        this.checkPointShow();
+        this.checkBuildHover();
+      }
+
       this.renderer.render(this.scene, this.camera);
     };
     this.renderer.setAnimationLoop(animate);
@@ -202,7 +215,7 @@ class SchoolCanvas extends React.Component {
     // 场景
     this.scene = new THREE.Scene();
     // 相机
-    this.camera = new THREE.PerspectiveCamera(75, sizes.width / sizes.height, 0.1, 2000);
+    this.camera = new THREE.PerspectiveCamera(75, sizes.width / sizes.height, 10, 2000);
     this.camera.position.set(120, 1800, 120);
     // 轨道
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
@@ -210,7 +223,7 @@ class SchoolCanvas extends React.Component {
     this.controls.enableDamping = true;
     // this.controls.enablePan = false; // 禁止平移
     this.controls.maxPolarAngle = 1.5;
-    this.controls.minDistance = 0;
+    this.controls.minDistance = 100;
     this.controls.maxDistance = 1500;
 
     // 添加坐标系
@@ -251,59 +264,6 @@ class SchoolCanvas extends React.Component {
 
     sky.material.uniforms['sunPosition'].value.copy(sun);
     this.scene.environment = pmremGenerator.fromScene(sky).texture;
-  };
-
-  checkPointShow = () => {
-    const raycaster = new THREE.Raycaster();
-    if (this.state.sceneReady) {
-      // 遍历每个交互点
-      for (const point of this.state.guidePointList) {
-        // 注册元素
-        if (!point.element) {
-          console.log(1);
-          let element = document.querySelector('.build_' + point.id);
-          // 添加元素点击事件
-          this.addPointClickSelect('.build_' + point.id, point.position);
-          point.element = element;
-        }
-        // 获取2D屏幕位置
-        const screenPosition = point.position.clone();
-        screenPosition.project(this.camera);
-        raycaster.setFromCamera(screenPosition, this.camera);
-        const intersects = raycaster.intersectObjects(this.scene.children);
-
-        // 获取相交点的距离和点的距离
-        const intersectionDistance = intersects[0].distance;
-        const pointDistance = point.position.distanceTo(this.camera.position);
-        if (pointDistance > 900) {
-          point.element.classList.remove('visible');
-        } else if (intersects[0].object.name === point.name) {
-          // 未找到相交点，显示
-          point.element.classList.add('visible');
-        } else {
-          // 相交点距离比点距离近，隐藏；相交点距离比点距离远，显示
-          intersectionDistance < pointDistance
-            ? point.element.classList.remove('visible')
-            : point.element.classList.add('visible');
-        }
-        const translateX = screenPosition.x * sizes.width * 0.5;
-        const translateY = -screenPosition.y * sizes.height * 0.5;
-        point.element.style.transform = `translateX(${translateX}px) translateY(${translateY}px)`;
-      }
-    }
-  };
-
-  moveCamera = () => {
-    Animations.animateCamera(
-      this.camera,
-      this.controls,
-      { x: 110, y: 250, z: 100 },
-      { x: 0, y: 0, z: -50 },
-      2800,
-      () => {
-        this.setState({ sceneReady: true });
-      },
-    );
   };
 
   // 初始化网格
@@ -464,27 +424,16 @@ class SchoolCanvas extends React.Component {
       school_map.rotateY(Math.PI);
       this.scene.add(school_map);
       school_map.traverse((obj) => {
-        if (obj.isMesh) {
+        if (buildNameMap.has(obj.name)) {
           if (obj.name === '道路') {
             this.road = obj;
           }
-          obj.castShadow = true;
+          // obj.castShadow = true;
           this.schoolBuildMeshList.push(obj);
           this.initGuidePoint(obj);
         }
       });
     });
-
-    //   // worldOctree.fromGraphNode(school_map);
-
-    //   // const worldOctreeHelper = new OctreeHelper(worldOctree);
-    //   // worldOctreeHelper.visible = false;
-    //   // scene.add(worldOctreeHelper);
-
-    //   // gui.add({ OctreeDebug: false }, 'OctreeDebug').onChange(function (value) {
-    //   //   worldOctreeHelper.visible = value;
-    //   // });
-    // });
   };
 
   // 开始寻路
@@ -542,6 +491,98 @@ class SchoolCanvas extends React.Component {
     // }
   };
 
+  // 检查建筑物的名字是否展示
+  checkPointShow = () => {
+    let raycaster = new THREE.Raycaster();
+    // 遍历每个交互点
+    for (const point of this.state.guidePointList) {
+      // 注册元素
+      if (!point.element) {
+        console.log(1);
+        let element = document.querySelector('.build_' + point.id);
+        // 添加元素点击事件
+        this.addPointClickSelect('.build_' + point.id, point.position);
+        point.element = element;
+      }
+      // 获取2D屏幕位置
+      const screenPosition = point.position.clone();
+      screenPosition.project(this.camera);
+      raycaster.setFromCamera(screenPosition, this.camera);
+      const intersects = raycaster.intersectObjects(this.schoolBuildMeshList, false);
+      const pointDistance = point.position.distanceTo(this.camera.position);
+
+      if (intersects.length) {
+        // 获取相交点的距离和点的距离
+        const intersectionDistance = intersects[0].distance;
+        if (intersects[0].object.name === point.name) {
+          // 未找到相交点，显示
+          point.element.classList.add('visible');
+        } else {
+          // 相交点距离比点距离近，隐藏；相交点距离比点距离远，显示
+          intersectionDistance < pointDistance
+            ? point.element.classList.remove('visible')
+            : point.element.classList.add('visible');
+        }
+      } else {
+        point.element.classList.add('visible');
+      }
+      if (pointDistance > 800) {
+        point.element.classList.remove('visible');
+      }
+      const translateX = screenPosition.x * sizes.width * 0.5;
+      const translateY = -screenPosition.y * sizes.height * 0.5;
+      point.element.style.transform = `translateX(${translateX}px) translateY(${translateY}px)`;
+    }
+    raycaster = null;
+  };
+
+  // 检查建筑物是否被鼠标hover
+  checkBuildHover = () => {
+    let raycaster = new THREE.Raycaster();
+    raycaster.setFromCamera(this.Pointer, this.camera);
+    const intersects = raycaster.intersectObjects(this.schoolBuildMeshList, false);
+    // console.log('intersects', intersects);
+    if (intersects.length > 0) {
+      if (this.HOVERED != intersects[0].object) {
+        if (this.HOVERED) {
+          // this.HOVERED.material.emissive.setHex(this.HOVERED.currentHex);
+          this.HOVERED.scale.set(1, 1, 1);
+        }
+        this.HOVERED = intersects[0].object;
+        // this.HOVERED.currentHex = this.HOVERED.material.emissive.getHex();
+        // this.HOVERED.material.emissive.setHex(0xff0000);
+        this.HOVERED.scale.set(1.1, 1.1, 1.1);
+      }
+    } else {
+      if (this.HOVERED) {
+        // this.HOVERED.material.emissive.setHex(this.HOVERED.currentHex);
+        this.HOVERED.scale.set(1, 1, 1);
+      }
+      this.HOVERED = null;
+    }
+    raycaster = null;
+  };
+
+  // 初始化相机位置
+  initCamera = (time: number, callback?: () => void) => {
+    Animations.animateCamera(
+      this.camera,
+      this.controls,
+      { x: 110, y: 250, z: 100 },
+      { x: 0, y: 0, z: -50 },
+      time,
+      callback,
+    );
+  };
+
+  resetCamera = () => {
+    this.initCamera(2800, () => {
+      this.setState({ sceneReady: true });
+      // 添加建筑物点击事件
+      this.addBuildClickSelect();
+    });
+  };
+
   // 初始化导览交互点
   initGuidePoint = (mesh: THREE.Object3D) => {
     let guideInfo: any = null;
@@ -555,7 +596,7 @@ class SchoolCanvas extends React.Component {
       const w_pos = new THREE.Vector3();
       mesh.getWorldPosition(w_pos);
       // 添加坐标
-      guideInfo.position = new THREE.Vector3(w_pos.x, w_pos.y * 1.2, w_pos.z);
+      guideInfo.position = new THREE.Vector3(w_pos.x, w_pos.y * 1.1, w_pos.z);
       guideInfo.id = mesh.id;
       // 添加元素
       this.setState({ guidePointList: [...this.state.guidePointList, guideInfo] });
@@ -573,6 +614,14 @@ class SchoolCanvas extends React.Component {
         1600,
         () => {},
       );
+    });
+  };
+
+  // 添加元素悬浮事件
+  addPointerHover = () => {
+    document.addEventListener('mousemove', (event) => {
+      this.Pointer.x = (event.clientX / sizes.width) * 2 - 1;
+      this.Pointer.y = -(event.clientY / sizes.height) * 2 + 1;
     });
   };
 
@@ -641,7 +690,7 @@ class SchoolCanvas extends React.Component {
       <div ref={this.container} className="school">
         <canvas className="webgl"></canvas>
         {/* 进度条 */}
-        <Loading progress={this.state.loadingProcess} moveCamera={this.moveCamera} />
+        <Loading progress={this.state.loadingProcess} initCamera={this.resetCamera} />
         {/* copyright */}
         <a
           className="github"
