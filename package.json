@@ -13,6 +13,7 @@
   "dependencies": {
     "@types/dat.gui": "^0.7.12",
     "@types/lodash": "^4.14.202",
+    "@types/react-transition-group": "^4.4.10",
     "antd": "^5.15.1",
     "classnames": "^2.5.1",
     "dat.gui": "^0.7.9",
@@ -20,6 +21,7 @@
     "lodash": "^4.17.21",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
+    "react-transition-group": "^4.4.5",
     "stats.js": "^0.17.0",
     "three": "^0.158.0",
     "three-pathfinding": "^1.2.0"

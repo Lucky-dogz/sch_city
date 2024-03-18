@@ -1,8 +1,6 @@
-// import '@/style/index.less';
 import './index.less';
 import React from 'react';
 import * as THREE from 'three';
-// 引入three.js其他扩展库，对应版本查看文档，最新扩展库在addons文件夹下，eg：'three/addons/controls/OrbitControls.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 // import { gui } from '../common/gui';
 import { Sky } from 'three/examples/jsm/objects/Sky';
@@ -27,9 +25,19 @@ import {
   sizes,
   boardConfig,
 } from '@/config/resize';
+import {
+  getPlayerPos,
+  getPointerControl,
+  initCollidableObjects,
+  initPlayer,
+  setPlayerPos,
+  updatePlayer,
+} from '../player_one';
+import TWEEN from 'three/examples/jsm/libs/tween.module.js';
 
 interface props {
   loadingProcess: number;
+  controlType: 'first' | 'god';
 }
 
 class SchoolCanvas extends React.Component {
@@ -40,6 +48,7 @@ class SchoolCanvas extends React.Component {
   targetLine: null; // 目前选中建筑物提示光束
   schoolBuildMeshList: THREE.Object3D[]; // 建筑合集
   container: React.RefObject<unknown>;
+  orbitControls: null;
   controls: null;
   grid: any[][];
   ground: THREE.Mesh;
@@ -51,11 +60,13 @@ class SchoolCanvas extends React.Component {
   roadLineTexture: any;
   Pointer: THREE.Vector2;
   HOVERED: any;
-  constructor(props: props) {
+
+  constructor(props) {
     super(props);
     this.renderer = null;
     this.scene = null;
     this.camera = null;
+    this.orbitControls = null;
     this.controls = null;
     this.mixers = [];
     this.targetLine = null;
@@ -82,7 +93,6 @@ class SchoolCanvas extends React.Component {
   state = {
     loadingProcess: 0,
     dataInitProgress: 0,
-    sceneReady: false,
     guidePointList: [],
   };
 
@@ -98,7 +108,6 @@ class SchoolCanvas extends React.Component {
   }
 
   initThree = () => {
-    const clock = new THREE.Clock();
     this.initBaseScene();
     this.initLight();
     this.addAmbient();
@@ -148,6 +157,7 @@ class SchoolCanvas extends React.Component {
         this.setState({ loadingProcess: Math.floor((loaded / total) * 100) });
       },
     );
+    const clock = new THREE.Clock();
     // 初始化加载器
     initLoaders(manager);
     // 加载地图
@@ -157,7 +167,6 @@ class SchoolCanvas extends React.Component {
     this.initGrid();
     // 添加鼠标悬浮事件
     this.addPointerHover();
-    // this.loadPlain(manager);
 
     // setTimeout(() => {
 
@@ -178,31 +187,72 @@ class SchoolCanvas extends React.Component {
     // }, 2000);
 
     const animate = () => {
+      requestAnimationFrame(animate);
       this.stats && this.stats.update();
-      this.controls && this.controls.update();
-      const delta = clock.getDelta();
+      let delta = clock.getDelta();
       this.mixers &&
         this.mixers.forEach((item) => {
           item.update(delta);
         });
       const timer = Date.now() * 0.0005;
       Tween && Tween.update();
+
+      if (this.props.controlType == 'first' && this.controls.isLocked === true) {
+        updatePlayer(delta);
+      }
+
+      // 路线
       if (this.roadLineTexture) {
         this.roadLineTexture.offset.x -= Math.random() / 80;
       }
       // this.camera && (this.camera.position.y += Math.sin(timer) * 0.05);
-      // 当所有场景都准备好后
-      if (this.state.sceneReady) {
+      if (this.props.sceneReady) {
         // 不断检查交互点
         this.checkPointShow();
-        this.checkBuildHover();
+        if (this.props.controlType == 'god') {
+          this.checkBuildHover();
+        }
       }
-
       this.renderer.render(this.scene, this.camera);
     };
-    this.renderer.setAnimationLoop(animate);
+    animate();
   };
 
+  // 设置视角
+  setControls = (type: 'god' | 'first') => {
+    if (type === 'first') {
+      console.log('first');
+      this.camera.near = 1;
+      this.camera.fov = 75;
+      this.camera.far = 900;
+      this.camera.updateProjectionMatrix();
+      this.controls.enabled = false;
+      this.controls = getPointerControl();
+      let pos = getPlayerPos();
+      new TWEEN.Tween(this.camera.position)
+        .to(pos, 2000)
+        .easing(TWEEN.Easing.Exponential.Out)
+        .start();
+      new TWEEN.Tween(this.camera.rotation)
+        .to({ x: 0, y: (5 * Math.PI) / 4, z: 0 }, 2000)
+        .easing(TWEEN.Easing.Exponential.Out)
+        .start();
+    } else {
+      console.log('god');
+      setPlayerPos();
+      this.camera.near = 10;
+      this.camera.fov = 75;
+      this.camera.far = 2000;
+      this.camera.updateProjectionMatrix();
+      this.controls = this.orbitControls;
+      this.controls.enabled = true;
+      setTimeout(() => {
+        this.initCamera(1500);
+      }, 200);
+    }
+  };
+
+  // 初始化基本场景
   initBaseScene = () => {
     // 渲染器
     this.renderer = new THREE.WebGLRenderer({
@@ -218,19 +268,22 @@ class SchoolCanvas extends React.Component {
     this.camera = new THREE.PerspectiveCamera(75, sizes.width / sizes.height, 10, 2000);
     this.camera.position.set(120, 1800, 120);
     // 轨道
-    this.controls = new OrbitControls(this.camera, this.renderer.domElement);
-    this.controls.target.set(0, 0, 0);
-    this.controls.enableDamping = true;
-    // this.controls.enablePan = false; // 禁止平移
-    this.controls.maxPolarAngle = 1.5;
-    this.controls.minDistance = 100;
-    this.controls.maxDistance = 1500;
-
+    this.orbitControls = new OrbitControls(this.camera, this.renderer.domElement);
+    this.orbitControls.target.set(0, 0, 0);
+    this.orbitControls.enableDamping = true;
+    this.orbitControls.enablePan = false; // 禁止平移
+    this.orbitControls.maxPolarAngle = 1.5;
+    this.orbitControls.minDistance = 100;
+    this.orbitControls.maxDistance = 1500;
+    this.controls = this.orbitControls;
+    // 初始化鼠标控制器（第一人称）
+    initPlayer(this.scene, this.camera, this.renderer);
     // 添加坐标系
     const axesHelper = new THREE.AxesHelper(500);
     this.scene.add(axesHelper);
   };
 
+  // 初始化灯光
   initLight = () => {
     // 环境光
     const ambientLight = new THREE.AmbientLight(0xffffff, 2);
@@ -244,6 +297,7 @@ class SchoolCanvas extends React.Component {
     // this.initGUI({ ambientLight, directLight });
   };
 
+  // 增加环境
   addAmbient = () => {
     // 天空
     const sky = new Sky();
@@ -577,9 +631,11 @@ class SchoolCanvas extends React.Component {
 
   resetCamera = () => {
     this.initCamera(2800, () => {
-      this.setState({ sceneReady: true });
+      this.props.setSceneReady(true);
       // 添加建筑物点击事件
       this.addBuildClickSelect();
+      // 初始化碰撞集合
+      initCollidableObjects(this.scene.children);
     });
   };
 
@@ -687,7 +743,13 @@ class SchoolCanvas extends React.Component {
 
   render() {
     return (
-      <div ref={this.container} className="school">
+      <div
+        ref={this.container}
+        className="school"
+        onClick={() => {
+          this.props.controlType === 'first' && this.controls.lock();
+        }}
+      >
         <canvas className="webgl"></canvas>
         {/* 进度条 */}
         <Loading progress={this.state.loadingProcess} initCamera={this.resetCamera} />

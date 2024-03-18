@@ -23,6 +23,7 @@ const OperateBorad: React.FC<Props> = ({
   const [startOptions, setStartOptions] = useState<Build[]>([]);
   const [finishOptions, setFinishOptions] = useState<Build[]>([]);
   const [positon, setPosition] = useState({});
+  const [isFindBtnShaked, setIsFindBtnShaked] = useState<boolean>(false);
   // const [BMapLoaded, setBMapLoaded] = useState<boolean>(false);
 
   // useEffect(() => {
@@ -67,6 +68,17 @@ const OperateBorad: React.FC<Props> = ({
   //     console.log('positon', position);
   //   });
   // }, []);
+
+  const handleFindPath = () => {
+    if (start && finish && start.name !== finish.name) {
+      findPath();
+    } else {
+      setIsFindBtnShaked(true);
+      setTimeout(() => {
+        setIsFindBtnShaked(false);
+      }, 200);
+    }
+  };
 
   // 模糊搜索
   const handleSearch = (type: 0 | 1, value: string) => {
@@ -148,8 +160,8 @@ const OperateBorad: React.FC<Props> = ({
             }))}
           />
           <Button
-            className={styles.findPathBtn}
-            onClick={findPath}
+            className={classNames(styles.findPathBtn, isFindBtnShaked && styles.shake)}
+            onClick={handleFindPath}
             size="middle"
             type="primary"
           >
