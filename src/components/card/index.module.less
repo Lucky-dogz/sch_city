@@ -1,0 +1,43 @@
+@primary: #390099;
+@primary-low: rgba(56, 0, 153, 0.45);
+@secondary: #0099ff;
+@secondary-low: rgba(0, 153, 255, 0.45);
+@danger: #ff0054;
+@danger-low: rgba(255, 0, 85, 0.45);
+@warning: #ffbd00;
+@warning-low: rgba(255, 187, 0, 0.45);
+@success: #00c542;
+@success-low: rgba(0, 197, 66, 0.45);
+@dark: #001d74;
+@dark-low: rgba(0, 29, 116, 0.45);
+
+.info-container {
+  position: fixed;
+  left: 16%;
+  top: 24%;
+  width: 350px;
+  height: 400px;
+  // max-height: 100%;
+  // max-width: 90%;
+  display: flex;
+  flex-direction: column;
+  font-size: 0.9em;
+  padding: 25px;
+  border-radius: 16px;
+  // background: linear-gradient(0, @dark 0%, #000000 240%);
+  background-color: #fff;
+  box-shadow: 2px 10px 30px rgba(#000, 0.4);
+  z-index: 10;
+  // clip-path: circle(200% at calc(100% - 30px) calc(100% - 30px));
+  // transition: all 400ms ease-in-out;
+  animation: show 200ms;
+}
+
+@keyframes show {
+  0% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}

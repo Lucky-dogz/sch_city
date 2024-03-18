@@ -22,7 +22,7 @@ export const drawPoint = (row: number, col: number, color: any) => {
   pointGeometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
   const pointMaterial = new THREE.PointsMaterial({ size: 1, color });
   const point = new THREE.Points(pointGeometry, pointMaterial);
-  point.position.set(col - 350, 0, row - 470);
+  point.position.set(col - 350, 1, row - 470);
   return point;
 };
 

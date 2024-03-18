@@ -18,7 +18,7 @@ import _ from 'lodash';
 import Loading from '@/components/loading';
 import { roadPoint } from '@/config/grid';
 import { loadFont, createText } from '@/components/author';
-import { drawStreamingRoadLight, removeObj } from '@/utils';
+import { drawPoint, drawStreamingRoadLight, removeObj } from '@/utils';
 import {
   removeResizeListener,
   resizeEventListener,
@@ -34,6 +34,7 @@ import {
   updatePlayer,
 } from '../player_one';
 import TWEEN from 'three/examples/jsm/libs/tween.module.js';
+import Card from '../card';
 
 interface props {
   loadingProcess: number;
@@ -94,6 +95,8 @@ class SchoolCanvas extends React.Component {
     loadingProcess: 0,
     dataInitProgress: 0,
     guidePointList: [],
+    showCard: false,
+    currentCardValue: undefined,
   };
 
   componentDidMount() {
@@ -112,52 +115,37 @@ class SchoolCanvas extends React.Component {
     this.initLight();
     this.addAmbient();
     resizeEventListener(this.camera, this.renderer);
-    // gui
-    //   .add({ color: 2 }, 'color', 0, 360)
-    //   .name('phi')
-    //   .onChange((value) => {
-    //     let phi = THREE.MathUtils.degToRad(value); // 仰角
-    //     sun.setFromSphericalCoords(1, phi, theta);
-    //     sky.material.uniforms['sunPosition'].value.copy(sun);
-    //   });
-    // gui
-    //   .add({ color: 2 }, 'color', 0, 360)
-    //   .name('theta')
-    //   .onChange((value) => {
-    //     let theta = THREE.MathUtils.degToRad(value); // 方位角
-    //     sun.setFromSphericalCoords(1, phi, theta);
-    //     sky.material.uniforms['sunPosition'].value.copy(sun);
-    //   });
+
     // this.redPointMesh = drawPoint(400, 400, 'red');
     // this.scene.add(this.redPointMesh);
     // gui
     //   .add(this.redPoint, 'row', 0, 799, 1)
     //   .name('row')
     //   .onChange((value) => {
-    //     this.redPointMesh.position.set(this.redPoint.col - 350, 0, value - 470);
+    //     this.redPointMesh.position.set(this.redPoint.col - 350, 1, value - 470);
     //   });
 
     // gui
     //   .add(this.redPoint, 'col', 0, 799, 1)
     //   .name('col')
     //   .onChange((value) => {
-    //     this.redPointMesh.position.set(value - 350, 0, this.redPoint.row - 470);
+    //     this.redPointMesh.position.set(value - 350, 1, this.redPoint.row - 470);
     //   });
 
     // 进度条加载器
     const manager = new THREE.LoadingManager(
       () => {
         console.log('资源加载完毕！');
-        const authorMesh = createText();
-        authorMesh.position.set(200, 0, 150);
-        this.scene.add(authorMesh);
+        // const authorMesh = createText();
+        // authorMesh.position.set(200, 0, 150);
+        // this.scene.add(authorMesh);
       },
       (url, loaded, total) => {
         console.log('资源加载中：', Math.floor((loaded / total) * 100));
         this.setState({ loadingProcess: Math.floor((loaded / total) * 100) });
       },
     );
-    const clock = new THREE.Clock();
+
     // 初始化加载器
     initLoaders(manager);
     // 加载地图
@@ -167,25 +155,25 @@ class SchoolCanvas extends React.Component {
     this.initGrid();
     // 添加鼠标悬浮事件
     this.addPointerHover();
-
+    // this.loadPlain();
     // setTimeout(() => {
-
-    //   //   this.startFindPath();
-    //   // let res = [];
-    //   // for (let i = 0; i < this.grid.length; i++) {
-    //   //   for (let j = 0; j < this.grid[0].length; j++) {
-    //   //     let obj = this.grid[i][j];
-    //   //     if (obj.status === 'default') {
-    //   //       res.push({
-    //   //         row: obj.row,
-    //   //         col: obj.col,
-    //   //       });
-    //   //     }
-    //   //   }
-    //   // }
-    //   // console.log('res', res);
+    //   this.initGrid();
+    //   // this.startFindPath();
+    //   let res = [];
+    //   for (let i = 0; i < this.grid.length; i++) {
+    //     for (let j = 0; j < this.grid[0].length; j++) {
+    //       let obj = this.grid[i][j];
+    //       if (obj.status === 'default') {
+    //         res.push({
+    //           row: obj.row,
+    //           col: obj.col,
+    //         });
+    //       }
+    //     }
+    //   }
+    //   console.log('res', res);
     // }, 2000);
-
+    const clock = new THREE.Clock();
     const animate = () => {
       requestAnimationFrame(animate);
       this.stats && this.stats.update();
@@ -194,7 +182,7 @@ class SchoolCanvas extends React.Component {
         this.mixers.forEach((item) => {
           item.update(delta);
         });
-      const timer = Date.now() * 0.0005;
+      const timer = Date.now() * 0.002;
       Tween && Tween.update();
 
       if (this.props.controlType == 'first' && this.controls.isLocked === true) {
@@ -205,12 +193,13 @@ class SchoolCanvas extends React.Component {
       if (this.roadLineTexture) {
         this.roadLineTexture.offset.x -= Math.random() / 80;
       }
-      // this.camera && (this.camera.position.y += Math.sin(timer) * 0.05);
+
       if (this.props.sceneReady) {
         // 不断检查交互点
         this.checkPointShow();
         if (this.props.controlType == 'god') {
-          this.checkBuildHover();
+          // this.checkBuildHover();
+          // this.camera && (this.camera.position.y += Math.sin(timer) * 0.09);
         }
       }
       this.renderer.render(this.scene, this.camera);
@@ -304,7 +293,7 @@ class SchoolCanvas extends React.Component {
     sky.scale.setScalar(10000);
     this.scene.add(sky);
     const skyUniforms = sky.material.uniforms;
-    skyUniforms['turbidity'].value = 20; // 云雾度
+    skyUniforms['turbidity'].value = 10; // 云雾度
     skyUniforms['rayleigh'].value = 3;
     skyUniforms['mieCoefficient'].value = 0.005;
     skyUniforms['mieDirectionalG'].value = 0.08;
@@ -312,29 +301,50 @@ class SchoolCanvas extends React.Component {
     // 太阳
     const sun = new THREE.Vector3();
     const pmremGenerator = new THREE.PMREMGenerator(this.renderer);
-    const phi = THREE.MathUtils.degToRad(88); // 仰角
+    const phi = THREE.MathUtils.degToRad(89); // 仰角
     const theta = THREE.MathUtils.degToRad(200); // 方位角
     sun.setFromSphericalCoords(1, phi, theta);
 
     sky.material.uniforms['sunPosition'].value.copy(sun);
     this.scene.environment = pmremGenerator.fromScene(sky).texture;
+
+    // gui
+    //   .add({ color: 2 }, 'color', 0, 360)
+    //   .name('phi')
+    //   .onChange((value) => {
+    //     let phi = THREE.MathUtils.degToRad(value); // 仰角
+    //     sun.setFromSphericalCoords(1, phi, theta);
+    //     sky.material.uniforms['sunPosition'].value.copy(sun);
+    //   });
+    // gui
+    //   .add({ color: 2 }, 'color', 0, 360)
+    //   .name('theta')
+    //   .onChange((value) => {
+    //     let theta = THREE.MathUtils.degToRad(value); // 方位角
+    //     sun.setFromSphericalCoords(1, phi, theta);
+    //     sky.material.uniforms['sunPosition'].value.copy(sun);
+    //   });
   };
 
   // 初始化网格
   initGrid = () => {
     // 创建一个 Raycaster 对象
     // let raycaster = new THREE.Raycaster();
-    // 垂直向下向量
+    // // 垂直向下向量
     // let direction = new THREE.Vector3(0, -1, 0);
+    // let count = 0;
     for (let i = 0; i < roadPoint.length; i++) {
       let row = roadPoint[i].row;
       let col = roadPoint[i].col;
       this.grid[row][col] = this.createNode(row, col, 'default');
     }
     for (let i = 0; i < boardConfig.rows; i++) {
+      // console.log('已完成:' + i + '行');
       for (let j = 0; j < boardConfig.cols; j++) {
         if (!this.grid[i][j]) {
           this.grid[i][j] = this.createNode(i, j, 'wall');
+          // this.grid[i][j] = this.createNode(i, j, raycaster, direction);
+          // count++;
         }
       }
     }
@@ -348,21 +358,10 @@ class SchoolCanvas extends React.Component {
     row: number,
     col: number,
     status: string,
-    raycaster?: THREE.Raycaster,
-    direction?: THREE.Vector3 | undefined,
+    // raycaster?: THREE.Raycaster,
+    // direction?: THREE.Vector3 | undefined,
   ) => {
     // let status = 'default';
-    // if (
-    //   row == this.props.start.coordinate.row &&
-    //   col == this.props.start.coordinate.position.col
-    // ) {
-    //   status = 'start';
-    // } else if (
-    //   row == this.props.finish.position.row &&
-    //   col == this.props.finish.position.col
-    // ) {
-    //   status = 'finish';
-    // }
     // let res = this.initWall({ row, col }, raycaster, direction);
     // if (res === 'wall') {
     //   status = res;
@@ -457,7 +456,7 @@ class SchoolCanvas extends React.Component {
         var gridHelper = new THREE.GridHelper(size, divisions, 0x5c78bd, 0x5c78bd);
         gridHelper.position.set(
           this.ground.position.x,
-          this.ground.position.y + 0.05,
+          this.ground.position.y + 1,
           this.ground.position.z,
         );
         this.scene.add(gridHelper);
@@ -478,10 +477,10 @@ class SchoolCanvas extends React.Component {
       school_map.rotateY(Math.PI);
       this.scene.add(school_map);
       school_map.traverse((obj) => {
+        if (obj.name === '道路') {
+          this.road = obj;
+        }
         if (buildNameMap.has(obj.name)) {
-          if (obj.name === '道路') {
-            this.road = obj;
-          }
           // obj.castShadow = true;
           this.schoolBuildMeshList.push(obj);
           this.initGuidePoint(obj);
@@ -554,9 +553,9 @@ class SchoolCanvas extends React.Component {
       if (!point.element) {
         console.log(1);
         let element = document.querySelector('.build_' + point.id);
-        // 添加元素点击事件
-        this.addPointClickSelect('.build_' + point.id, point.position);
         point.element = element;
+        // 添加元素点击事件
+        this.addPointClickSelect('.build_' + point.id, point.position, point);
       }
       // 获取2D屏幕位置
       const screenPosition = point.position.clone();
@@ -660,15 +659,24 @@ class SchoolCanvas extends React.Component {
   };
 
   // 添加元素点击事件
-  addPointClickSelect = (className: string, position: THREE.Vector3) => {
+  addPointClickSelect = (
+    className: string,
+    position: THREE.Vector3,
+    cardValue: Build,
+  ) => {
+    // 传建筑物info进行展示
     document.querySelector(className)?.addEventListener('click', (e) => {
       Animations.animateCamera(
         this.camera,
         this.controls,
-        { x: position.x + 10, y: position.y + 100, z: position.z + 100 },
-        { x: position.x, y: position.y, z: position.z },
+        { x: position.x - 10, y: position.y + 80, z: position.z + 80 },
+        { x: position.x - 50, y: position.y, z: position.z },
         1600,
-        () => {},
+        () => {
+          this.setState({ showCard: true });
+          this.controls.enabled = false;
+          this.setState({ currentCardValue: cardValue });
+        },
       );
     });
   };
@@ -756,7 +764,7 @@ class SchoolCanvas extends React.Component {
         {/* copyright */}
         <a
           className="github"
-          href="https://github.com/dragonir/3d"
+          href="https://github.com/Lucky-dogz/sch_city"
           target="_blank"
           rel="noreferrer"
         >
@@ -788,6 +796,12 @@ class SchoolCanvas extends React.Component {
               </div>
             );
           })}
+        {/* 介绍卡片 */}
+        <Card
+          showCard={this.state.showCard}
+          hideCard={() => this.setState({ showCard: false })}
+          build={this.state.currentCardValue}
+        />
       </div>
     );
   }
