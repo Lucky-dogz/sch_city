@@ -19,6 +19,8 @@ import Loading from '@/components/loading';
 import { roadPoint } from '@/config/grid';
 import { loadFont, createText } from '@/components/author';
 import { drawPoint, drawStreamingRoadLight, removeObj } from '@/utils';
+import school from '@/resources/models/school_01.glb';
+import ground from '@/resources/textures/ground.png';
 import {
   removeResizeListener,
   resizeEventListener,
@@ -151,7 +153,7 @@ class SchoolCanvas extends React.Component {
     // 加载地图
     this.loadMap();
     // 加载作者文字
-    loadFont();
+    // loadFont();
     this.initGrid();
     // 添加鼠标悬浮事件
     this.addPointerHover();
@@ -435,7 +437,7 @@ class SchoolCanvas extends React.Component {
     );
     groundGeometry.rotateX(-Math.PI / 2);
     load_texture.load(
-      'ground.png',
+      ground,
       (texture) => {
         texture.wrapS = THREE.RepeatWrapping;
         texture.wrapT = THREE.RepeatWrapping;
@@ -470,7 +472,7 @@ class SchoolCanvas extends React.Component {
 
   // 校园地图加载
   loadMap = () => {
-    load_gltf.load('school_01.glb', (gltf: GLTF) => {
+    load_gltf.load(school, (gltf: GLTF) => {
       console.log('校园地图加载完毕：', gltf);
       const school_map = gltf.scene;
       school_map.position.set(0, 0, 0);

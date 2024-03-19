@@ -4,7 +4,7 @@ import { Line2 } from 'three/examples/jsm/lines/Line2';
 import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry';
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial';
 import { load_texture } from './loaders';
-
+import line from '@/resources/textures/line/line1.png';
 // 世界坐标转换成二维坐标
 export const vectorToCoord = (x: number, z: number) => {
   let row = z + 470;
@@ -75,10 +75,10 @@ export const drawLightLine = (tempObj: THREE.Object3D) => {
 
 // 流光效果
 export const drawStreamingRoadLight = (road: []) => {
-  let imgUrl = 'line1';
+  // let imgUrl = 'line1';
   let texture;
   // 纹理
-  load_texture.load(`line/${imgUrl}.png`, function (tex) {
+  load_texture.load(line, function (tex) {
     texture = tex;
     tex.needsUpdate = true;
     tex.wrapS = THREE.RepeatWrapping;

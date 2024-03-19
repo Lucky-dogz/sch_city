@@ -2,7 +2,7 @@ import { load_font } from '@/utils/loaders';
 import * as THREE from 'three';
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry';
 import { Font } from 'three/examples/jsm/loaders/FontLoader';
-
+import my_font from '@/resources/fonts/optimer_regular.typeface.json';
 let authorMesh, textMesh2, textGeo, materials: THREE.MeshPhongMaterial[];
 
 let text = 'three.js',
