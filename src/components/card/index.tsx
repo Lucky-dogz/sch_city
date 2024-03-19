@@ -7,9 +7,10 @@ interface Props {
   build?: Build;
   showCard: boolean;
   hideCard: () => void;
+  backCamera: () => void;
 }
 
-const Card: React.FC<Props> = ({ showCard, build, hideCard }) => {
+const Card: React.FC<Props> = ({ showCard, build, hideCard, backCamera }) => {
   const cardRef = useRef(null);
 
   useEffect(() => {
@@ -17,6 +18,7 @@ const Card: React.FC<Props> = ({ showCard, build, hideCard }) => {
     function handleOutsideClick(event) {
       if (cardRef.current && !cardRef.current.contains(event.target)) {
         hideCard();
+        backCamera();
       }
     }
     document.addEventListener('click', handleOutsideClick);
@@ -30,6 +32,13 @@ const Card: React.FC<Props> = ({ showCard, build, hideCard }) => {
       {showCard && (
         <div ref={cardRef} className={styles.infoContainer}>
           <h2>{build?.name}</h2>
+          <div className={styles.time}>{build?.info.timeLimit}</div>
+          <div className={styles.tips}>
+            {build?.info.tips?.map((item, index) => {
+              return <span key={index}>{item}</span>;
+            })}
+          </div>
+          <div>{build?.info.brief}</div>
         </div>
       )}
     </>

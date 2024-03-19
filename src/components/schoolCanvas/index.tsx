@@ -199,7 +199,7 @@ class SchoolCanvas extends React.Component {
         this.checkPointShow();
         if (this.props.controlType == 'god') {
           // this.checkBuildHover();
-          // this.camera && (this.camera.position.y += Math.sin(timer) * 0.09);
+          this.camera && (this.camera.position.y += Math.sin(timer) * 0.09);
         }
       }
       this.renderer.render(this.scene, this.camera);
@@ -268,8 +268,8 @@ class SchoolCanvas extends React.Component {
     // 初始化鼠标控制器（第一人称）
     initPlayer(this.scene, this.camera, this.renderer);
     // 添加坐标系
-    const axesHelper = new THREE.AxesHelper(500);
-    this.scene.add(axesHelper);
+    // const axesHelper = new THREE.AxesHelper(500);
+    // this.scene.add(axesHelper);
   };
 
   // 初始化灯光
@@ -494,8 +494,7 @@ class SchoolCanvas extends React.Component {
     console.log('开始寻路～');
     const startNode = this.grid[start.coordinate.row][start.coordinate.col];
     const finishNode = this.grid[finish.coordinate.row][finish.coordinate.col];
-    // this.grid[startNode.row][startNode.col].status = 'start';
-    // this.grid[finishNode.row][finishNode.col].status = 'finish';
+
     let nodesToAnimate: any = [];
     let find_result;
     // 查找
@@ -519,6 +518,7 @@ class SchoolCanvas extends React.Component {
     const { mesh, texture } = drawStreamingRoadLight(nodesInShortestPathOrder);
     this.roadstreamingLine = mesh;
     this.scene.add(this.roadstreamingLine);
+    console.log('texture', texture);
     this.roadLineTexture = texture;
     // for (let i = 0; i < nodesInShortestPathOrder.length; i++) {
     // if (i === visitedNodesInOrder.length) {
@@ -551,7 +551,6 @@ class SchoolCanvas extends React.Component {
     for (const point of this.state.guidePointList) {
       // 注册元素
       if (!point.element) {
-        console.log(1);
         let element = document.querySelector('.build_' + point.id);
         point.element = element;
         // 添加元素点击事件
@@ -801,6 +800,7 @@ class SchoolCanvas extends React.Component {
           showCard={this.state.showCard}
           hideCard={() => this.setState({ showCard: false })}
           build={this.state.currentCardValue}
+          backCamera={this.initCamera}
         />
       </div>
     );
