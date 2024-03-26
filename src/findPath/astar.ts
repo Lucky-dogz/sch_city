@@ -1,18 +1,18 @@
 import _, { has } from 'lodash';
 
 // 初始节点
-// const test = {
-//   "id": 30,
-//   "row": 1,
-//   "col": 0,
-//   "status": "default",
-//   "distance": Infinity,
-//   "totalDistance": Infinity,
-//   "heuristicDistance": null,
-//   "direction": null,
-//   "weight": 0,
-//   "previousNode": null
-// }
+interface Point {
+  id: number;
+  row: number;
+  col: number;
+  status: 'default' | 'wall';
+  distance: number;
+  totalDistance: number;
+  heuristicDistance: number;
+  direction: string;
+  weight: 0;
+  previousNode: Point | null;
+}
 
 // A * 算法
 export function astar(grid, start, target, close_set) {
@@ -71,10 +71,10 @@ function updateNode(currentNode, targetNode, actualTargetNode?) {
   let distanceToCompare;
   // 启发式函数为求曼哈顿距离
   if (!targetNode.heuristicDistance) {
-    targetNode.heuristicDistance = diagonalDistance(targetNode, actualTargetNode);
+    targetNode.heuristicDistance = euclidDistance(targetNode, actualTargetNode);
   }
   distanceToCompare = currentNode.distance + targetNode.weight + distance[0];
-
+  // Math.min(targetNode.distance,currentNode.distance + targetNode.weight + distance[0])
   if (distanceToCompare < targetNode.distance) {
     targetNode.distance = distanceToCompare;
     targetNode.previousNode = currentNode;
@@ -292,4 +292,13 @@ function diagonalDistance(nodeOne, nodeTwo) {
   let dx = Math.abs(nodeOneCoordinates[0] - nodeTwoCoordinates[0]);
   let dy = Math.abs(nodeOneCoordinates[1] - nodeTwoCoordinates[1]);
   return dx + dy + (Math.sqrt(2) - 2.5) * Math.min(dx, dy);
+}
+
+// 获取欧几里得距离
+function euclidDistance(nodeOne, nodeTwo) {
+  let nodeOneCoordinates = [nodeOne.row, nodeOne.col];
+  let nodeTwoCoordinates = [nodeTwo.row, nodeTwo.col];
+  let dx = Math.abs(nodeOneCoordinates[0] - nodeTwoCoordinates[0]);
+  let dy = Math.abs(nodeOneCoordinates[1] - nodeTwoCoordinates[1]);
+  return 0.4 * Math.sqrt(dx * dx + dy * dy);
 }

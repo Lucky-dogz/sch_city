@@ -8,7 +8,7 @@ let moveBackward = false;
 let moveLeft = false;
 let moveRight = false;
 let canJump = false;
-let cameraY = 3;
+let cameraY = 2.6;
 let raycaster;
 const velocity = new THREE.Vector3();
 const direction = new THREE.Vector3();
@@ -129,7 +129,7 @@ function aupdatePlayer(delta: number) {
 
 // 更新player
 function updatePlayer(delta: number) {
-  let playerSpeed = 300;
+  let playerSpeed = 100;
   // 惯性减速
   velocity.x -= velocity.x * 10.0 * delta;
   velocity.z -= velocity.z * 10.0 * delta;
@@ -138,19 +138,19 @@ function updatePlayer(delta: number) {
     direction.x = Number(moveRight) - Number(moveLeft);
     direction.normalize(); // this ensures consistent movements in all directions
 
-    if (moveForward || moveBackward) velocity.z -= direction.z * playerSpeed * delta;
-    if (moveLeft || moveRight) velocity.x -= direction.x * playerSpeed * delta;
+    if (moveForward || moveBackward) velocity.z += direction.z * playerSpeed * delta;
+    if (moveLeft || moveRight) velocity.x += direction.x * playerSpeed * delta;
 
     // 平行于xz平面，向侧面移动摄像机。
-    pointerControls.moveRight(-velocity.x * delta);
+    pointerControls.moveRight(velocity.x * delta);
     // 平行于xz平面，向前移动摄像机
-    pointerControls.moveForward(-velocity.z * delta);
+    pointerControls.moveForward(velocity.z * delta);
   } else {
     velocity.x = 0;
     velocity.z = 0;
   }
 
-  velocity.y -= 9.8 * 50.0 * delta; // 50.0 = mass
+  velocity.y -= 9.8 * 50 * delta; // 50.0 = 质量
   if (detectOnObject()) {
     velocity.y = Math.max(0, velocity.y);
     canJump = true;

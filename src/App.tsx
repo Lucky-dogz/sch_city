@@ -8,6 +8,12 @@ import { CSSTransition } from 'react-transition-group';
 import icon_first from '@/resources/images/first.svg';
 import icon_resetCamera from '@/resources/images/reset.svg';
 import icon_god from '@/resources/images/god.svg';
+import loadBMap from '@/utils/loadBMap';
+
+interface LL {
+  longitude: number;
+  latitude: number;
+}
 
 const App: React.FC = () => {
   const [loadingProcess, setLoadingProcess] = useState<number>(0);
@@ -16,20 +22,57 @@ const App: React.FC = () => {
   const [hasFound, setHasFound] = useState<boolean>(false);
   const [controlType, setControlType] = useState<'first' | 'god'>('god');
   const [sceneReady, setSceneReady] = useState<boolean>(false);
-  // const [currentGeo,setCurrentGeo] = useState({
-  //   latitude:,
-  //   longitude:
-  // })
+  const [location, setLocation] = useState<LL>({
+    longitude: 0,
+    latitude: 0,
+  });
+  const [BMapLoaded, setBMapLoaded] = useState<boolean>(false);
   const school = useRef(null);
 
   // useEffect(() => {
-  //   navigator.geolocation.getCurrentPosition((position) => {
-  //     console.log('positon', position);
-  //     // setPosition({
-  //     //   latitude: position.coords.latitude,
-  //     //   longitude: position.coords.longitude,
-  //     // });
-  //   });
+  //   window.initBMap = () => {
+  //     setBMapLoaded(true);
+  //     //获取当前位置
+  //     const BMap = window.BMapGL;
+  //     const geolocation = new BMap.Geolocation();
+  //     geolocation.getCurrentPosition(
+  //       function (r) {
+  //         let ggPoint = new BMap.Point(r.longitude, r.latitude);
+  //         console.log('r', r);
+  //         var convertor = new BMap.Convertor();
+  //         convertor.translate([ggPoint], 5, 6, (data) => {
+  //           console.log('BD09墨卡托', data);
+  //           // setLocation({
+  //           //   latitude: data.points[0].lat,
+  //           //   longitude: data.points[0].lng,
+  //           // });
+  //         });
+
+  //         // let mk = new BMap.Marker(r.point);
+  //         // getAddress(r.point);
+  //       },
+  //       {
+  //         enableHighAccuracy: true,
+  //         maximumAge: 0,
+  //       },
+  //     );
+
+  //     // 获取地址信息，设置地址label
+  //     function getAddress(point) {
+  //       var gc = new BMap.Geocoder();
+  //       gc.getLocation(point, function (rs) {
+  //         var addComp = rs.addressComponents;
+  //         var address =
+  //           addComp.province +
+  //           addComp.city +
+  //           addComp.district +
+  //           addComp.street +
+  //           addComp.streetNumber; //获取地址
+  //         console.log(address);
+  //       });
+  //     }
+  //   };
+  //   loadBMap();
   // }, []);
 
   useEffect(() => {
@@ -73,6 +116,7 @@ const App: React.FC = () => {
         controlType={controlType}
         sceneReady={sceneReady}
         setSceneReady={setSceneReady}
+        location={location}
       />
       <CSSTransition
         in={sceneReady}
@@ -114,3 +158,13 @@ const App: React.FC = () => {
 };
 
 export default App;
+
+// useEffect(() => {
+//   navigator.geolocation.getCurrentPosition((position) => {
+//     console.log('positon', position);
+//     setPosition({
+//       latitude: position.coords.latitude,
+//       longitude: position.coords.longitude,
+//     });
+//   });
+// }, []);

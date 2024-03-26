@@ -4,7 +4,8 @@ import { Line2 } from 'three/examples/jsm/lines/Line2';
 import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry';
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial';
 import { load_texture } from './loaders';
-import line from '@/resources/textures/line/line1.png';
+// import line from '@/resources/textures/line/line1.png';
+import { smoothPath, smoothPathWithBezier } from '@/findPath/helper';
 // 世界坐标转换成二维坐标
 export const vectorToCoord = (x: number, z: number) => {
   let row = z + 470;
@@ -20,7 +21,7 @@ export const drawPoint = (row: number, col: number, color: any) => {
   const pointGeometry = new THREE.BufferGeometry();
   const vertices = new Float32Array([0, 0, 0]);
   pointGeometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
-  const pointMaterial = new THREE.PointsMaterial({ size: 1, color });
+  const pointMaterial = new THREE.PointsMaterial({ size: 20, color });
   const point = new THREE.Points(pointGeometry, pointMaterial);
   point.position.set(col - 350, 1, row - 470);
   return point;
@@ -74,7 +75,7 @@ export const drawLightLine = (tempObj: THREE.Object3D) => {
 };
 
 // 流光效果
-export const drawStreamingRoadLight = (road: []) => {
+export const drawStreamingRoadLight1 = (road: []) => {
   // let imgUrl = 'line1';
   let texture;
   // 纹理
@@ -109,6 +110,46 @@ export const drawStreamingRoadLight = (road: []) => {
   };
 };
 
+export const drawStreamingRoadLight = (road: []) => {
+  const positions = [];
+  let texture;
+  const colors = [];
+  let points = [];
+
+  road.forEach((item: any) => {
+    points.push({
+      x: item.col - 350,
+      z: item.row - 470,
+    });
+    // points.push(new THREE.Vector3(item.col - 350, 1, item.row - 470));
+  });
+  points = smoothPath(points);
+  points.forEach((item: any) => {
+    positions.push(item.x, 0.5, item.z);
+    colors.push(1, 1, 0);
+  });
+  const geometry = new LineGeometry();
+  geometry.setPositions(positions);
+  geometry.setColors(colors);
+
+  let matLine = new LineMaterial({
+    color: 0xffffff,
+    linewidth: 1, // in world units with size attenuation, pixels otherwise
+    vertexColors: true,
+    worldUnits: true,
+    alphaToCoverage: true,
+  });
+
+  let mesh = new Line2(geometry, matLine);
+  // mesh.computeLineDistances();
+  mesh.scale.set(1, 1, 1);
+
+  return {
+    mesh,
+    texture,
+  };
+};
+
 const clearCache = (item) => {
   item.geometry.dispose();
   item.material.dispose();
@@ -131,60 +172,67 @@ export const removeObj = (obj: any) => {
     clearCache(obj);
   }
   obj.clear();
-  console.log('obj', obj);
 };
 
-// initGroundColor = (groundGeometry, texture) => {
-//   const indices = []; // 存储网格的索引数据，用于定义三角形
-//   const vertices = []; // 存储网格的顶点坐标
-//   const normals = []; // 存储网格的法线数据
-//   const colors = []; // 存储每个顶点的颜色数据
-//   const size = boardConfig.cols * boardConfig.rows;
-//   const segments = boardConfig.cols * boardConfig.rows;
-//   const halfSize = size / 2;
-//   const segmentSize = size / segments;
-//   const _color = new THREE.Color();
-//   // generate vertices, normals and color data for a simple grid geometry
+export function drawCircle() {
+  let vertexShader = `
+      varying vec2 vUv;
+      void main() {
+          vUv = uv;
+          vec4 modelViewPosition = modelViewMatrix * vec4(position, 1.0);
+          gl_Position = projectionMatrix * modelViewPosition;
+      } `;
+  let fragmentShader = `
+      varying vec2 vUv;
+      uniform float time;
+      void main() {
+          float distance = length(vUv - 0.5);
+          float wave = sin(distance * 40.0 + time * 2.0);
+          vec3 color = vec3(0.5, 0.7, 0.9); // 淡蓝色
+          gl_FragColor = vec4(color, 0.6 - wave);
+      }`;
 
-//   for (let i = 0; i <= segments; i++) {
-//     const y = i * segmentSize - halfSize;
-//     for (let j = 0; j <= segments; j++) {
-//       const x = j * segmentSize - halfSize;
-//       vertices.push(x, -y, 0);
-//       normals.push(0, 1, 0);
-//       if (i < 5 && j < 5) {
-//         _color.setRGB(0, 1, 0);
-//       } else {
-//         _color.setRGB(1, 1, 1);
-//       }
-//       colors.push(_color.r, _color.g, _color.b);
-//     }
-//   }
-//   for (let i = 0; i < segments; i++) {
-//     for (let j = 0; j < segments; j++) {
-//       const a = i * (segments + 1) + (j + 1);
-//       const b = i * (segments + 1) + j;
-//       const c = (i + 1) * (segments + 1) + j;
-//       const d = (i + 1) * (segments + 1) + (j + 1);
-//       // generate two faces (triangles) per iteration
-//       indices.push(a, b, d); // face one
-//       indices.push(b, c, d); // face two
-//     }
-//   }
-//   // groundGeometry.setIndex(indices);
-//   // groundGeometry.setAttribute(
-//   //   'position',
-//   //   new THREE.Float32BufferAttribute(vertices, 3),
-//   // );
-//   // groundGeometry.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
-//   groundGeometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+  // 创建着色器材质
+  var material = new THREE.ShaderMaterial({
+    uniforms: {
+      time: { value: 0.0 },
+    },
+    vertexShader: vertexShader,
+    fragmentShader: fragmentShader,
+    transparent: true,
+    side: THREE.DoubleSide,
+  });
 
-//   const material = new THREE.MeshPhongMaterial({
-//     map: texture,
-//     side: THREE.FrontSide,
-//     vertexColors: true,
-//   });
+  // 创建几何体
+  var geometry = new THREE.CircleGeometry(75, 64); // 半径为 5 的圆形，分段数为 64
 
-//   let mesh = new THREE.Mesh(groundGeometry, material);
-//   this.scene.add(mesh);
-// };
+  // 创建网格对象
+  var circle = new THREE.Mesh(geometry, material);
+
+  // 创建网格对象
+  var circle = new THREE.Mesh(geometry, material);
+  circle.position.set(658 - 350, 2, 158 - 470);
+  circle.rotateX(Math.PI / 2);
+  return {
+    circle,
+    material,
+  };
+}
+
+export function drawCircle2() {
+  // 创建圆圈的几何体
+  var geometry = new THREE.CircleGeometry(50, 64); // 参数分别为：半径，分段数
+  // 创建材质
+  var material = new THREE.MeshBasicMaterial({
+    color: 0x00ffff, // 透明淡蓝色
+    transparent: true,
+    opacity: 0.6, // 设置透明度
+    side: THREE.DoubleSide,
+  });
+  // // 创建网格对象
+  var circle = new THREE.Mesh(geometry, material);
+  // // 将网格对象添加到场景中
+  circle.position.set(658 - 350, 2, 158 - 470);
+  circle.rotateX(Math.PI / 2);
+  return circle;
+}

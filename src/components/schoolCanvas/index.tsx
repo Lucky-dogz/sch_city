@@ -12,14 +12,21 @@ import { GLTF } from 'three/examples/jsm/loaders/GLTFLoader';
 import { Build, buildNameMap, build_data } from '@/config/data';
 import classnames from 'classnames';
 import locIcon from '@/resources/images/loc-icon.svg';
+
 import { getNodesInShortestPathOrder } from '@/findPath/helper';
 import { astar } from '@/findPath/astar';
 import _ from 'lodash';
 import Loading from '@/components/loading';
 import { roadPoint } from '@/config/grid';
 import { loadFont, createText } from '@/components/author';
-import { drawPoint, drawStreamingRoadLight, removeObj } from '@/utils';
-import school from '@/resources/models/school_01.glb';
+import {
+  drawCircle,
+  drawCircle2,
+  drawPoint,
+  drawStreamingRoadLight,
+  removeObj,
+} from '@/utils';
+import school from '@/resources/models/school.glb';
 import ground from '@/resources/textures/ground.png';
 import {
   removeResizeListener,
@@ -37,6 +44,7 @@ import {
 } from '../player_one';
 import TWEEN from 'three/examples/jsm/libs/tween.module.js';
 import Card from '../card';
+import { llToCoord } from '@/utils/lngLatToXY';
 
 interface props {
   loadingProcess: number;
@@ -59,10 +67,12 @@ class SchoolCanvas extends React.Component {
   road: THREE.Object3D<THREE.Object3DEventMap>;
   redPoint: { row: number; col: number };
   redPointMesh: any;
-  stats: Stats;
+  // stats: Stats;
   roadLineTexture: any;
   Pointer: THREE.Vector2;
   HOVERED: any;
+  circleMaterial: THREE.ShaderMaterial;
+  cloudsArr: THREE.Object3D[];
 
   constructor(props) {
     super(props);
@@ -81,13 +91,14 @@ class SchoolCanvas extends React.Component {
     );
     this.redPoint = { row: 400, col: 400 };
     this.redPointMesh = null;
+    this.cloudsArr = [];
     // 监视器
-    this.stats = new Stats();
-    this.stats.showPanel(0);
-    this.stats.dom.style.inset = '';
-    this.stats.dom.style.right = '10px';
-    this.stats.dom.style.top = '10px';
-    document.body.appendChild(this.stats.dom);
+    // this.stats = new Stats();
+    // this.stats.showPanel(0);
+    // this.stats.dom.style.inset = '';
+    // this.stats.dom.style.right = '10px';
+    // this.stats.dom.style.top = '10px';
+    // document.body.appendChild(this.stats.dom);
     this.roadLineTexture = null;
     this.Pointer = new THREE.Vector2();
     this.HOVERED = null;
@@ -157,6 +168,14 @@ class SchoolCanvas extends React.Component {
     this.initGrid();
     // 添加鼠标悬浮事件
     this.addPointerHover();
+
+    const c = drawCircle();
+    this.circleMaterial = c.material;
+    // this.scene.add(c.circle);
+
+    // 添加雾
+    // this.scene.fog = new THREE.Fog('#99a4a8', 1, 10);
+    // this.scene.background = new THREE.Color('#99a4a8'); // red
     // this.loadPlain();
     // setTimeout(() => {
     //   this.initGrid();
@@ -191,9 +210,22 @@ class SchoolCanvas extends React.Component {
         updatePlayer(delta);
       }
 
+      // if (this.scene.fog) {
+      //   if (this.camera.position.y < 1000) {
+      //     this.scene.fog.density = 0.5; // 修改雾的密度
+      //   }
+      // }
       // 路线
-      if (this.roadLineTexture) {
-        this.roadLineTexture.offset.x -= Math.random() / 80;
+      // if (this.roadLineTexture) {
+      //   this.roadLineTexture.offset.x -= Math.random() / 80;
+      // }
+      if (this.props.location.latitude) {
+        let coor = llToCoord([
+          this.props.location.longitude,
+          this.props.location.latitude,
+        ]);
+        c.circle.position.set(coor.col - 350, 1, coor.row - 470);
+        this.circleMaterial && (this.circleMaterial.uniforms.time.value -= 0.06);
       }
 
       if (this.props.sceneReady) {
@@ -202,6 +234,18 @@ class SchoolCanvas extends React.Component {
         if (this.props.controlType == 'god') {
           // this.checkBuildHover();
           this.camera && (this.camera.position.y += Math.sin(timer) * 0.09);
+        }
+      } else {
+        if (this.camera.position.y < 1250 && this.camera.position.y > 500) {
+          this.cloudsArr.forEach((item, index) => {
+            if (item.name.includes('Cloudr')) {
+              item.position.x -= delta * item.userData.x;
+              item.position.z += delta * item.userData.z;
+            } else {
+              item.position.x += delta * item.userData.x;
+              item.position.z -= delta * item.userData.z;
+            }
+          });
         }
       }
       this.renderer.render(this.scene, this.camera);
@@ -214,7 +258,7 @@ class SchoolCanvas extends React.Component {
     if (type === 'first') {
       console.log('first');
       this.camera.near = 1;
-      this.camera.fov = 75;
+      this.camera.fov = 55;
       this.camera.far = 900;
       this.camera.updateProjectionMatrix();
       this.controls.enabled = false;
@@ -257,7 +301,7 @@ class SchoolCanvas extends React.Component {
     this.scene = new THREE.Scene();
     // 相机
     this.camera = new THREE.PerspectiveCamera(75, sizes.width / sizes.height, 10, 2000);
-    this.camera.position.set(120, 1800, 120);
+    this.camera.position.set(120, 1280, 120);
     // 轨道
     this.orbitControls = new OrbitControls(this.camera, this.renderer.domElement);
     this.orbitControls.target.set(0, 0, 0);
@@ -265,7 +309,7 @@ class SchoolCanvas extends React.Component {
     this.orbitControls.enablePan = false; // 禁止平移
     this.orbitControls.maxPolarAngle = 1.5;
     this.orbitControls.minDistance = 100;
-    this.orbitControls.maxDistance = 1500;
+    this.orbitControls.maxDistance = 2000;
     this.controls = this.orbitControls;
     // 初始化鼠标控制器（第一人称）
     initPlayer(this.scene, this.camera, this.renderer);
@@ -487,6 +531,14 @@ class SchoolCanvas extends React.Component {
           this.schoolBuildMeshList.push(obj);
           this.initGuidePoint(obj);
         }
+        if (obj.name.includes('Cloud')) {
+          this.cloudsArr.push(obj);
+        }
+        if (obj.name.includes('山')) {
+          obj.material = new THREE.MeshLambertMaterial({
+            color: '#5C9034',
+          });
+        }
       });
     });
   };
@@ -520,7 +572,7 @@ class SchoolCanvas extends React.Component {
     const { mesh, texture } = drawStreamingRoadLight(nodesInShortestPathOrder);
     this.roadstreamingLine = mesh;
     this.scene.add(this.roadstreamingLine);
-    console.log('texture', texture);
+    // console.log('texture', texture);
     this.roadLineTexture = texture;
     // for (let i = 0; i < nodesInShortestPathOrder.length; i++) {
     // if (i === visitedNodesInOrder.length) {
@@ -561,6 +613,7 @@ class SchoolCanvas extends React.Component {
       // 获取2D屏幕位置
       const screenPosition = point.position.clone();
       screenPosition.project(this.camera);
+
       raycaster.setFromCamera(screenPosition, this.camera);
       const intersects = raycaster.intersectObjects(this.schoolBuildMeshList, false);
       const pointDistance = point.position.distanceTo(this.camera.position);
@@ -619,6 +672,7 @@ class SchoolCanvas extends React.Component {
 
   // 初始化相机位置
   initCamera = (time: number, callback?: () => void) => {
+    this.state.showCard && this.setState({ showCard: false });
     Animations.animateCamera(
       this.camera,
       this.controls,
@@ -630,7 +684,13 @@ class SchoolCanvas extends React.Component {
   };
 
   resetCamera = () => {
-    this.initCamera(2800, () => {
+    this.initCamera(3200, () => {
+      this.orbitControls.maxDistance = 1200;
+      this.cloudsArr.forEach((item) => {
+        this.scene.remove(item);
+        removeObj(item);
+      });
+      this.cloudsArr = [];
       this.props.setSceneReady(true);
       // 添加建筑物点击事件
       this.addBuildClickSelect();
@@ -667,15 +727,16 @@ class SchoolCanvas extends React.Component {
   ) => {
     // 传建筑物info进行展示
     document.querySelector(className)?.addEventListener('click', (e) => {
+      this.state.showCard && this.setState({ showCard: false });
       Animations.animateCamera(
         this.camera,
         this.controls,
         { x: position.x - 10, y: position.y + 80, z: position.z + 80 },
         { x: position.x - 50, y: position.y, z: position.z },
-        1600,
+        1500,
         () => {
-          this.setState({ showCard: true });
           this.controls.enabled = false;
+          this.setState({ showCard: true });
           this.setState({ currentCardValue: cardValue });
         },
       );
