@@ -13,10 +13,13 @@ export function getNodesInShortestPathOrder(finishNode) {
   let currentNode = finishNode;
 
   while (currentNode !== null) {
-    nodesInShortestPathOrder.unshift(currentNode);
+    nodesInShortestPathOrder.unshift({
+      row: currentNode.row,
+      col: currentNode.col,
+      direction: currentNode.direction,
+    });
     currentNode = currentNode.previousNode;
   }
-
   return nodesInShortestPathOrder;
 }
 
@@ -73,6 +76,19 @@ export async function tweenToColor(node, geometry, colors, duration = 300, optio
       });
     }
   }
+}
+
+// 计算路线距离
+export function getDistanceFromPath(path: []) {
+  let len = 0;
+  path.forEach((item) => {
+    if (item.direction.includes('-')) {
+      len += Number(Math.sqrt(2).toFixed(2));
+    } else {
+      ++len;
+    }
+  });
+  return path.length;
 }
 
 function lerp(a, b, t) {

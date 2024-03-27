@@ -104,7 +104,7 @@ const build_data: Build[] = [
     },
   },
   {
-    name: '教工公寓(25号楼)/菜鸟驿站',
+    name: '25号楼菜鸟驿站',
     type: 'dorm',
     coordinate: {
       row: 158,

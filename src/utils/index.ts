@@ -110,7 +110,7 @@ export const drawStreamingRoadLight1 = (road: []) => {
   };
 };
 
-export const drawStreamingRoadLight = (road: []) => {
+export const drawStreamingRoadLight = (road: any[]) => {
   const positions = [];
   let texture;
   const colors = [];

@@ -16,10 +16,8 @@ interface LL {
 }
 
 const App: React.FC = () => {
-  const [loadingProcess, setLoadingProcess] = useState<number>(0);
   const [start, setStart] = useState<Build>();
   const [finish, setFinish] = useState<Build>();
-  const [hasFound, setHasFound] = useState<boolean>(false);
   const [controlType, setControlType] = useState<'first' | 'god'>('god');
   const [sceneReady, setSceneReady] = useState<boolean>(false);
   const [location, setLocation] = useState<LL>({
@@ -27,67 +25,15 @@ const App: React.FC = () => {
     latitude: 0,
   });
   const [BMapLoaded, setBMapLoaded] = useState<boolean>(false);
+  const [distance, setDistance] = useState<number>();
   const school = useRef(null);
 
-  // useEffect(() => {
-  //   window.initBMap = () => {
-  //     setBMapLoaded(true);
-  //     //获取当前位置
-  //     const BMap = window.BMapGL;
-  //     const geolocation = new BMap.Geolocation();
-  //     geolocation.getCurrentPosition(
-  //       function (r) {
-  //         let ggPoint = new BMap.Point(r.longitude, r.latitude);
-  //         console.log('r', r);
-  //         var convertor = new BMap.Convertor();
-  //         convertor.translate([ggPoint], 5, 6, (data) => {
-  //           console.log('BD09墨卡托', data);
-  //           // setLocation({
-  //           //   latitude: data.points[0].lat,
-  //           //   longitude: data.points[0].lng,
-  //           // });
-  //         });
-
-  //         // let mk = new BMap.Marker(r.point);
-  //         // getAddress(r.point);
-  //       },
-  //       {
-  //         enableHighAccuracy: true,
-  //         maximumAge: 0,
-  //       },
-  //     );
-
-  //     // 获取地址信息，设置地址label
-  //     function getAddress(point) {
-  //       var gc = new BMap.Geocoder();
-  //       gc.getLocation(point, function (rs) {
-  //         var addComp = rs.addressComponents;
-  //         var address =
-  //           addComp.province +
-  //           addComp.city +
-  //           addComp.district +
-  //           addComp.street +
-  //           addComp.streetNumber; //获取地址
-  //         console.log(address);
-  //       });
-  //     }
-  //   };
-  //   loadBMap();
-  // }, []);
-
-  useEffect(() => {
-    console.log('start', start);
-  }, [start?.name]);
-
-  useEffect(() => {
-    console.log('finish', finish);
-  }, [finish?.name]);
-
-  // 开始寻路
   const findPath = () => {
-    hasFound && school.current.resetNavigation();
-    school.current.startFindPath(start, finish);
-    setHasFound(true);
+    school.current.resetNavigation();
+    let len = school.current.startFindPath(start, finish);
+    if (len) {
+      setDistance(len);
+    }
   };
 
   // 切换视角
@@ -135,6 +81,7 @@ const App: React.FC = () => {
             changeStart={setStart}
             changeFinish={setFinish}
             findPath={findPath}
+            distance={distance}
           />
           {/* 侧边按钮栏 */}
           <div className="asideBtns">
@@ -151,6 +98,29 @@ const App: React.FC = () => {
               />
             )}
           </div>
+          {/* copyright */}
+          <a
+            className="github"
+            href="https://github.com/Lucky-dogz/sch_city"
+            target="_blank"
+            rel="noreferrer"
+          >
+            <svg
+              height="36"
+              aria-hidden="true"
+              viewBox="0 0 16 16"
+              version="1.1"
+              width="36"
+              data-view-component="true"
+            >
+              <path
+                fill="#FFFFFF"
+                fillRule="evenodd"
+                d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"
+              ></path>
+            </svg>
+            <span className="author">@Lucky-dogz</span>
+          </a>
         </>
       </CSSTransition>
     </div>
@@ -160,11 +130,71 @@ const App: React.FC = () => {
 export default App;
 
 // useEffect(() => {
+//   window.initBMap = () => {
+//     setBMapLoaded(true);
+//     //获取当前位置
+//     const BMap = window.BMapGL;
+//     const geolocation = new BMap.Geolocation();
+//     geolocation.getCurrentPosition(
+//       function (r) {
+//         let ggPoint = new BMap.Point(r.longitude, r.latitude);
+//         console.log('r', r);
+//         // setLocation({
+//         //   latitude: r.latitude,
+//         //   longitude: r.longitude,
+//         // });
+//         var convertor = new BMap.Convertor();
+//         convertor.translate([ggPoint], 5, 6, (data) => {
+//           console.log('BD09墨卡托', data);
+//           setLocation({
+//             latitude: data.points[0].lat,
+//             longitude: data.points[0].lng,
+//           });
+//         });
+
+//         // let mk = new BMap.Marker(r.point);
+//         // getAddress(r.point);
+//       },
+//       {
+//         enableHighAccuracy: true,
+//         maximumAge: 0,
+//       },
+//     );
+
+//     // 获取地址信息，设置地址label
+//     function getAddress(point) {
+//       var gc = new BMap.Geocoder();
+//       gc.getLocation(point, function (rs) {
+//         var addComp = rs.addressComponents;
+//         var address =
+//           addComp.province +
+//           addComp.city +
+//           addComp.district +
+//           addComp.street +
+//           addComp.streetNumber; //获取地址
+//         console.log(address);
+//       });
+//     }
+//   };
+//   loadBMap();
+// }, []);
+
+// useEffect(() => {
+//   console.log('start', start);
+// }, [start?.name]);
+
+// useEffect(() => {
+//   console.log('finish', finish);
+// }, [finish?.name]);
+
+// 开始寻路
+
+// useEffect(() => {
 //   navigator.geolocation.getCurrentPosition((position) => {
 //     console.log('positon', position);
-//     setPosition({
-//       latitude: position.coords.latitude,
-//       longitude: position.coords.longitude,
-//     });
+//     // setPosition({
+//     //   latitude: position.coords.latitude,
+//     //   longitude: position.coords.longitude,
+//     // });
 //   });
 // }, []);

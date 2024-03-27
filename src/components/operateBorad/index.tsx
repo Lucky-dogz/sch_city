@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Input, Select, Button } from 'antd';
+import { Input, Select, Button, Tag } from 'antd';
 import classNames from 'classnames';
 import styles from './index.module.less';
 import { Build, search_build } from '@/config/data';
@@ -10,6 +10,7 @@ interface Props {
   changeStart: (node: Build) => void;
   changeFinish: (node: Build) => void;
   findPath: () => void;
+  distance: number;
 }
 
 const OperateBorad: React.FC<Props> = ({
@@ -18,11 +19,11 @@ const OperateBorad: React.FC<Props> = ({
   changeStart,
   changeFinish,
   findPath,
+  distance,
 }) => {
   const [startOptions, setStartOptions] = useState<Build[]>([]);
   const [finishOptions, setFinishOptions] = useState<Build[]>([]);
   const [isFindBtnShaked, setIsFindBtnShaked] = useState<boolean>(false);
-
   const handleFindPath = () => {
     if (start && finish && start.name !== finish.name) {
       findPath();
@@ -121,6 +122,11 @@ const OperateBorad: React.FC<Props> = ({
           >
             开始寻路
           </Button>
+          {distance && (
+            <Tag className={styles.tag} color="blue">
+              {distance}m 约{Math.ceil(distance / (1.1 * 60))}分钟
+            </Tag>
+          )}
         </div>
       </div>
     </>

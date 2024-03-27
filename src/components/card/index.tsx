@@ -68,13 +68,14 @@ const Card: React.FC<Props> = ({ showCard, build, hideCard, backCamera }) => {
                 }
               >
                 {build?.info.brief}
-                {!ellipsis}
-                <span
-                  className={styles.closeBrief}
-                  onClick={() => setEllipsis(!ellipsis)}
-                >
-                  收起
-                </span>
+                {!ellipsis && (
+                  <span
+                    className={styles.closeBrief}
+                    onClick={() => setEllipsis(!ellipsis)}
+                  >
+                    收起
+                  </span>
+                )}
               </Paragraph>
             </div>
             {/* photo */}

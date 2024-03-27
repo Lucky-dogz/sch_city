@@ -32,7 +32,6 @@ export function astar(grid, start, target, close_set) {
 
     let neighbors = getNeighbors(currentNode, grid);
     open_set.push(...neighbors);
-    // console.log('hasChanged', _.cloneDeep(hasChanged));
     open_set = open_set.filter(
       (neighbor) => neighbor.status !== 'visited' && neighbor.status !== 'wall',
     );

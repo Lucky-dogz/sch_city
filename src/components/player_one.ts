@@ -112,12 +112,9 @@ function aupdatePlayer(delta: number) {
       velocity.y = Math.max(0, velocity.y);
       canJump = true;
     }
-    // console.log('-velocity.x * delta', -velocity.x * delta);
-    // console.log('-velocity.z * delta', -velocity.z * delta);
     pointerControls.moveRight(-velocity.x * delta);
     pointerControls.moveForward(-velocity.z * delta);
     pointerControls.getObject().position.y += velocity.y * delta; // new behavior
-    // console.log(pointerControls.getObject().position);
 
     if (pointerControls.getObject().position.y < cameraY) {
       velocity.y = 0;
