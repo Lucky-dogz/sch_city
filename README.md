@@ -2,7 +2,7 @@
 
 建模：ArcMap+ArcScene+Blender
 
-开发：ThreeJs+React+Vite+Ant Design+Eslint+Prettier
+开发：ThreeJs+React+TypeScript+Vite+Ant Design+Eslint+Prettier
 
 功能：校园不同建筑之间的导航、建筑交互与信息展示、实时定位（修复中）、第一人称漫游功能...
 
