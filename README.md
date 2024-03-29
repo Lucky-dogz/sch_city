@@ -1,37 +1,42 @@
-# Vite + React + Typescript + Eslint + Prettier
+## 基于Three.js的三维校园导航系统
 
-A starter for React with Typescript with the fast Vite and all static code testing with Eslint and formatting with Prettier.
+建模：ArcMap+ArcScene+Blender
 
-![Vite + React + Typescript + Eslint + Prettier](/resources/screenshot.png)
+开发：ThreeJs+React+Vite+Ant Design+Eslint+Prettier
 
-I found out about Vite and I wanted to have a boilerplate for the technologies that I use. You can find more about these in the following links: [Vite](https://github.com/vitejs/vite), [React](https://reactjs.org/), [Typescript](https://www.typescriptlang.org/), [Eslint](https://eslint.org/), [Prettier](https://prettier.io/).
+功能：校园不同建筑之间的导航、建筑交互与信息展示、实时定位（修复中）、第一人称漫游功能...
 
-## Installation
+非常感谢@[Dhruv Misra](https://github.com/dhruvmisra) 的 [Pathfinding-Visualizer-ThreeJS](https://github.com/dhruvmisra/Pathfinding-Visualizer-ThreeJS)，给予我很大参考和灵感
 
-Clone the repo and run `yarn install`
+<img src="./readme_img/vertical-view.jpg" alt="vertical-view"  />
 
-or Run command
+## 项目运行
 
 ```
-npx degit TheSwordBreaker/vite-reactts-eslint-prettier project-name
+npm install
+npm run dev
 ```
 
-## Start
+## 路径规划
 
-After the successfull installation of the packages: `yarn dev`
+800*800m导航网格构建，采用A\*导航算法
 
-## Steps in Vscode
+<img src="./readme_img/route_find.jpg" alt="route_find"  />
 
-#### (works with better with this template)
+## 实时定位
 
-1. Install Eslint and prettier extension for vs code.
-2. Make Sure Both are enabled
-3. Make sure all packages are Installed. (Mostly Eslint and prettier in node_modules)
-4. Enable formatOnSave of vs code
-5. Open a .tsx file and check if the bottom right corners of vs code have Eslint and Prettier with a double tick
+若网络允许✅，最好直接使用`Navigator.geolocation`，否则可以使用百度/高德地图的api获取当前位置经纬度（百度地图偏差较大😤），并进行墨卡托投影转换成平面坐标，与校园地图原点进行差值计算，最后映射转换到校园坐标系中。
 
-![Screenshot (253)_LI](https://user-images.githubusercontent.com/52120562/162486286-7383a737-d555-4f9b-a4dd-c4a81deb7b96.jpg)
+![locating](./readme_img/locating.png)
 
-If Everything is Good Then It Should Work, but let me new if something else happens
+## 建筑信息展示
 
-Made with ❤️ by theSwordBreaker(we Destory all types of sword ⚡)
+使用动画平滑库Tween.js移动摄像机实现，放上你想要展示的关于这栋建筑的信息
+
+![card](./readme_img/card.png)
+
+## 第一人称漫游
+
+主要借助**PointerLockControls**和**Raycaster**实现
+
+![first-view](./readme_img/first-view.png)

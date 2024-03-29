@@ -27,6 +27,55 @@ const App: React.FC = () => {
   const [BMapLoaded, setBMapLoaded] = useState<boolean>(false);
   const [distance, setDistance] = useState<number>();
   const school = useRef(null);
+  // useEffect(() => {
+  //   window.initBMap = () => {
+  //     setBMapLoaded(true);
+  //     //获取当前位置
+  //     const BMap = window.BMapGL;
+  //     const geolocation = new BMap.Geolocation();
+  //     geolocation.getCurrentPosition(
+  //       function (r) {
+  //         let ggPoint = new BMap.Point(r.longitude, r.latitude);
+  //         console.log('r', r);
+  //         setLocation({
+  //           latitude: r.latitude,
+  //           longitude: r.longitude,
+  //         });
+  //         // var convertor = new BMap.Convertor();
+  //         // convertor.translate([ggPoint], 5, 6, (data) => {
+  //         //   console.log('BD09墨卡托', data);
+  //         //   setLocation({
+  //         //     latitude: data.points[0].lat,
+  //         //     longitude: data.points[0].lng,
+  //         //   });
+  //         // });
+
+  //         // let mk = new BMap.Marker(r.point);
+  //         // getAddress(r.point);
+  //       },
+  //       {
+  //         enableHighAccuracy: true,
+  //         maximumAge: 0,
+  //       },
+  //     );
+
+  //     // 获取地址信息，设置地址label
+  //     function getAddress(point) {
+  //       var gc = new BMap.Geocoder();
+  //       gc.getLocation(point, function (rs) {
+  //         var addComp = rs.addressComponents;
+  //         var address =
+  //           addComp.province +
+  //           addComp.city +
+  //           addComp.district +
+  //           addComp.street +
+  //           addComp.streetNumber; //获取地址
+  //         console.log(address);
+  //       });
+  //     }
+  //   };
+  //   loadBMap();
+  // }, []);
 
   const findPath = () => {
     school.current.resetNavigation();

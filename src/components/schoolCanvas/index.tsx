@@ -7,7 +7,6 @@ import { Sky } from 'three/examples/jsm/objects/Sky';
 import Stats from 'stats.js';
 import { initLoaders, load_gltf, load_texture } from '@/utils/loaders';
 import Animations from '@/utils/animations';
-import Tween from 'three/examples/jsm/libs/tween.module.js';
 import { GLTF } from 'three/examples/jsm/loaders/GLTFLoader';
 import { Build, buildNameMap, build_data } from '@/config/data';
 import classnames from 'classnames';
@@ -219,13 +218,13 @@ class SchoolCanvas extends React.Component {
       requestAnimationFrame(animate);
       this.stats && this.stats.update();
       const timer = Date.now() * 0.002;
-      Tween && Tween.update();
+      TWEEN && TWEEN.update();
 
       if (this.props.controlType == 'first' && this.controls.isLocked === true) {
         updatePlayer(delta);
       }
       if (this.props.location.latitude) {
-        let coor = llToCoord([
+        let coor = llToCoord2([
           this.props.location.longitude,
           this.props.location.latitude,
         ]);
@@ -268,11 +267,11 @@ class SchoolCanvas extends React.Component {
       this.controls.enabled = false;
       this.controls = getPointerControl();
       let pos = getPlayerPos();
-      new TWEEN.Tween(this.camera.position)
+      new TWEEN.TWEEN(this.camera.position)
         .to(pos, 2000)
         .easing(TWEEN.Easing.Exponential.Out)
         .start();
-      new TWEEN.Tween(this.camera.rotation)
+      new TWEEN.TWEEN(this.camera.rotation)
         .to({ x: 0, y: (5 * Math.PI) / 4, z: 0 }, 2000)
         .easing(TWEEN.Easing.Exponential.Out)
         .start();
