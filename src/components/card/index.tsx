@@ -4,6 +4,9 @@ import { Flex, Tag, Image, Typography } from 'antd';
 import styles from './index.module.less';
 import { Build } from '@/config/data';
 import food from '@/resources/images/food.svg';
+import play from '@/resources/images/shopping.svg';
+import dorm from '@/resources/images/dorm.svg';
+import pb from '@/resources/images/public.svg';
 const { Paragraph, Text } = Typography;
 interface Props {
   build?: Build;
@@ -38,7 +41,10 @@ const Card: React.FC<Props> = ({ showCard, build, hideCard, backCamera }) => {
             className={classNames(styles.infoContainer, 'beauti-scroll-bar')}
           >
             <div className={styles.title}>
-              <img src={food} alt="" />
+              {build?.type == 'food' && <img src={food} alt="" />}
+              {build?.type == 'play' && <img src={play} alt="" />}
+              {build?.type == 'dorm' && <img src={dorm} alt="" />}
+              {!['food', 'play', 'dorm'].includes(build?.type) && <img src={pb} alt="" />}
               {build?.name}
             </div>
             <div className={styles.time}>{build?.info.timeLimit}</div>
@@ -59,7 +65,7 @@ const Card: React.FC<Props> = ({ showCard, build, hideCard, backCamera }) => {
                 ellipsis={
                   ellipsis
                     ? {
-                        rows: 2,
+                        rows: 5,
                         expandable: true,
                         symbol: '更多',
                         onExpand: () => setEllipsis(!ellipsis),
@@ -78,22 +84,23 @@ const Card: React.FC<Props> = ({ showCard, build, hideCard, backCamera }) => {
                 )}
               </Paragraph>
             </div>
+
             {/* photo */}
-            {build?.name === '熹园' && (
-              <Flex wrap="wrap" justify="space-between">
+            {build?.info.photo !== 'resa' && (
+              <Flex wrap="wrap" gap={2}>
                 <Image.PreviewGroup
                   preview={{
-                    onChange: (current, prev) =>
-                      console.log(`current index: ${current}, prev index: ${prev}`),
+                    onChange: (current, prev) => {},
+                    // console.log(`current index: ${current}, prev index: ${prev}`),
                   }}
                 >
-                  {new Array(6).fill(0).map((item, index) => {
+                  {new Array(build?.info.count).fill(0).map((item, index) => {
                     return (
                       <Image
                         key={index}
-                        width={90}
+                        width={'30%'}
                         height={66}
-                        src={build?.info.photo + '/' + (index + 1) + '.jpg'}
+                        src={build?.info.photo + '/img_' + (index + 1) + '.JPG'}
                       />
                     );
                   })}

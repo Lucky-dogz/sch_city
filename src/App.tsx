@@ -9,6 +9,7 @@ import icon_first from '@/resources/images/first.svg';
 import icon_resetCamera from '@/resources/images/reset.svg';
 import icon_god from '@/resources/images/god.svg';
 import loadBMap from '@/utils/loadBMap';
+import loadAMap from '@/utils/loadAMap';
 
 interface LL {
   longitude: number;
@@ -24,57 +25,45 @@ const App: React.FC = () => {
     longitude: 0,
     latitude: 0,
   });
+  const [tagsShow, setTagsShow] = useState<boolean>(true);
   const [BMapLoaded, setBMapLoaded] = useState<boolean>(false);
   const [distance, setDistance] = useState<number>();
   const school = useRef(null);
   // useEffect(() => {
-  //   window.initBMap = () => {
-  //     setBMapLoaded(true);
-  //     //获取当前位置
-  //     const BMap = window.BMapGL;
-  //     const geolocation = new BMap.Geolocation();
-  //     geolocation.getCurrentPosition(
-  //       function (r) {
-  //         let ggPoint = new BMap.Point(r.longitude, r.latitude);
-  //         console.log('r', r);
-  //         setLocation({
-  //           latitude: r.latitude,
-  //           longitude: r.longitude,
-  //         });
-  //         // var convertor = new BMap.Convertor();
-  //         // convertor.translate([ggPoint], 5, 6, (data) => {
-  //         //   console.log('BD09墨卡托', data);
-  //         //   setLocation({
-  //         //     latitude: data.points[0].lat,
-  //         //     longitude: data.points[0].lng,
-  //         //   });
-  //         // });
-
-  //         // let mk = new BMap.Marker(r.point);
-  //         // getAddress(r.point);
-  //       },
-  //       {
-  //         enableHighAccuracy: true,
-  //         maximumAge: 0,
-  //       },
-  //     );
-
-  //     // 获取地址信息，设置地址label
-  //     function getAddress(point) {
-  //       var gc = new BMap.Geocoder();
-  //       gc.getLocation(point, function (rs) {
-  //         var addComp = rs.addressComponents;
-  //         var address =
-  //           addComp.province +
-  //           addComp.city +
-  //           addComp.district +
-  //           addComp.street +
-  //           addComp.streetNumber; //获取地址
-  //         console.log(address);
+  //   window.initAMap = () => {
+  //     AMap.plugin('AMap.Geolocation', function () {
+  //       var geolocation = new AMap.Geolocation({
+  //         enableHighAccuracy: true, // 是否使用高精度定位，默认：true
+  //         // timeout: 10000, // 设置定位超时时间，默认：无穷大
+  //         // offset: [10, 20],  // 定位按钮的停靠位置的偏移量
+  //         // zoomToAccuracy: true,  //  定位成功后调整地图视野范围使定位位置及精度范围视野内可见，默认：false
+  //         // position: 'RB' //  定位按钮的排放位置,  RB表示右下
   //       });
-  //     }
+
+  //       geolocation.getCurrentPosition(function (status, result) {
+  //         if (status == 'complete') {
+  //           onComplete(result);
+  //         } else {
+  //           onError(result);
+  //         }
+  //       });
+
+  //       function onComplete(data) {
+  //         // data是具体的定位信息
+  //         console.log('success', data);
+  //         // setLocation({
+  //         // latitude: data.position.latitude,
+  //         // longitude: r.longitude,
+  //         // )}
+  //       }
+
+  //       function onError(data) {
+  //         // 定位出错
+  //         console.log('error', data);
+  //       }
+  //     });
   //   };
-  //   loadBMap();
+  //   loadAMap();
   // }, []);
 
   const findPath = () => {
@@ -103,6 +92,11 @@ const App: React.FC = () => {
     school.current.initCamera(1500);
   };
 
+  // 标签开关
+  const switchTagsShow = (checked: boolean) => {
+    setTagsShow(checked);
+  };
+
   return (
     <div className="SCNU">
       {/* 学校展示 */}
@@ -112,6 +106,7 @@ const App: React.FC = () => {
         sceneReady={sceneReady}
         setSceneReady={setSceneReady}
         location={location}
+        tagsShow={tagsShow}
       />
       <CSSTransition
         in={sceneReady}
@@ -130,6 +125,7 @@ const App: React.FC = () => {
             changeStart={setStart}
             changeFinish={setFinish}
             findPath={findPath}
+            switchTagsShow={switchTagsShow}
             distance={distance}
           />
           {/* 侧边按钮栏 */}

@@ -19,12 +19,12 @@ function initPlayer(scene: THREE.Scene, camera: THREE.Camera, renderer: THREE.Re
 
   // 点击解锁
   pointerControls.addEventListener('lock', function () {
-    console.log('Pointer Locked');
+    // console.log('Pointer Locked');
   });
 
   // esc暂停
   pointerControls.addEventListener('unlock', function () {
-    console.log('Pointer Unlocked');
+    // console.log('Pointer Unlocked');
   });
 
   const onKeyDown = function (event: KeyboardEvent) {

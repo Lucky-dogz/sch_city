@@ -11,6 +11,7 @@
     "type-check": "tsc"
   },
   "dependencies": {
+    "@amap/amap-jsapi-loader": "^1.0.1",
     "@types/dat.gui": "^0.7.12",
     "@types/lodash": "^4.14.202",
     "@types/react-transition-group": "^4.4.10",

@@ -137,7 +137,6 @@ class SchoolCanvas extends React.Component {
     this.initLight();
     this.addAmbient();
     resizeEventListener(this.camera, this.renderer);
-
     // this.redPointMesh = drawPoint(400, 400, 'red');
     // this.scene.add(this.redPointMesh);
     // gui
@@ -233,7 +232,7 @@ class SchoolCanvas extends React.Component {
       }
       if (this.props.sceneReady) {
         // 不断检查交互点
-        this.checkPointShow();
+        this.props.tagsShow && this.checkPointShow();
         if (this.props.controlType == 'god') {
           // this.checkBuildHover();
           this.camera && (this.camera.position.y += Math.sin(timer) * 0.09);
@@ -259,7 +258,7 @@ class SchoolCanvas extends React.Component {
   // 设置视角
   setControls = (type: 'god' | 'first') => {
     if (type === 'first') {
-      console.log('first');
+      // console.log('first');
       this.camera.near = 1;
       this.camera.fov = 55;
       this.camera.far = 900;
@@ -267,16 +266,15 @@ class SchoolCanvas extends React.Component {
       this.controls.enabled = false;
       this.controls = getPointerControl();
       let pos = getPlayerPos();
-      new TWEEN.TWEEN(this.camera.position)
+      new TWEEN.Tween(this.camera.position)
         .to(pos, 2000)
         .easing(TWEEN.Easing.Exponential.Out)
         .start();
-      new TWEEN.TWEEN(this.camera.rotation)
+      new TWEEN.Tween(this.camera.rotation)
         .to({ x: 0, y: (5 * Math.PI) / 4, z: 0 }, 2000)
         .easing(TWEEN.Easing.Exponential.Out)
         .start();
     } else {
-      console.log('god');
       setPlayerPos();
       this.camera.near = 10;
       this.camera.fov = 75;
@@ -286,7 +284,7 @@ class SchoolCanvas extends React.Component {
       this.controls.enabled = true;
       setTimeout(() => {
         this.initCamera(1500);
-      }, 200);
+      }, 100);
     }
   };
 
@@ -445,8 +443,7 @@ class SchoolCanvas extends React.Component {
         previousNode: null,
       });
     }
-    //  清除流光线路
-    console.log('清理线路');
+    //  清除流光线
     this.scene.remove(this.roadstreamingLine);
     this.roadstreamingLine = null;
   };
@@ -526,8 +523,10 @@ class SchoolCanvas extends React.Component {
         if (obj.name === '道路') {
           this.road = obj;
         }
+        if (obj.name == '新楼') {
+          obj.name = '工学部教学楼（在建）';
+        }
         if (buildNameMap.has(obj.name)) {
-          // obj.castShadow = true;
           this.schoolBuildMeshList.push(obj);
           this.initGuidePoint(obj);
         }
@@ -540,22 +539,24 @@ class SchoolCanvas extends React.Component {
             color: '#5C9034',
           });
         }
+        if (obj.name == '新楼') {
+        }
       });
     });
   };
 
   // 开始寻路
   startFindPath = (start: Build, finish: Build) => {
-    console.log('开始寻路～');
+    // console.log('开始寻路～');
     const startNode = this.grid[start.coordinate.row][start.coordinate.col];
     const finishNode = this.grid[finish.coordinate.row][finish.coordinate.col];
     let nodesToAnimate: any = [];
     let find_result;
     // 查找
     find_result = astar(this.grid, startNode, finishNode, nodesToAnimate);
-    console.log('find_result:', find_result);
+    // console.log('find_result:', find_result);
     if (find_result == false) {
-      console.log('没找到路径');
+      // console.log('没找到路径');
       return null;
     }
     // 最短距离节点集合
@@ -646,6 +647,13 @@ class SchoolCanvas extends React.Component {
   // 初始化相机位置
   initCamera = (time: number, callback?: () => void) => {
     this.state.showCard && this.setState({ showCard: false });
+    if (this.cloudsArr) {
+      this.cloudsArr.forEach((item) => {
+        this.scene.remove(item);
+        removeObj(item);
+      });
+      this.cloudsArr = [];
+    }
     Animations.animateCamera(
       this.camera,
       this.controls,
@@ -659,11 +667,6 @@ class SchoolCanvas extends React.Component {
   resetCamera = () => {
     this.initCamera(3200, () => {
       this.orbitControls.maxDistance = 700;
-      this.cloudsArr.forEach((item) => {
-        this.scene.remove(item);
-        removeObj(item);
-      });
-      this.cloudsArr = [];
       this.props.setSceneReady(true);
       // 添加建筑物点击事件
       this.addBuildClickSelect();
@@ -800,17 +803,19 @@ class SchoolCanvas extends React.Component {
         {/* 进度条 */}
         <Loading progress={this.state.loadingProcess} initCamera={this.resetCamera} />
         {/* 渲染交互元素 */}
-        {this.state.guidePointList.length &&
-          this.state.guidePointList.map((obj: any) => {
-            return (
-              <div className={classnames('point', 'build_' + obj.id)} key={obj.id}>
-                <div className="dynamic">
-                  <img src={locIcon} className="label-icon" />
-                  <span className="name">{obj.name}</span>
+        <div style={{ visibility: this.props.tagsShow ? 'visible' : 'hidden' }}>
+          {this.state.guidePointList.length &&
+            this.state.guidePointList.map((obj: any) => {
+              return (
+                <div className={classnames('point', 'build_' + obj.id)} key={obj.id}>
+                  <div className="dynamic">
+                    <img src={locIcon} className="label-icon" />
+                    <span className="name">{obj.name}</span>
+                  </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+        </div>
         {/* 介绍卡片 */}
         <Card
           showCard={this.state.showCard}

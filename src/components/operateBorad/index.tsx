@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Input, Select, Button, Tag } from 'antd';
+import { Input, Select, Button, Tag, Switch } from 'antd';
 import classNames from 'classnames';
 import styles from './index.module.less';
 import { Build, search_build } from '@/config/data';
@@ -10,6 +10,7 @@ interface Props {
   changeStart: (node: Build) => void;
   changeFinish: (node: Build) => void;
   findPath: () => void;
+  switchTagsShow: () => void;
   distance: number;
 }
 
@@ -19,6 +20,7 @@ const OperateBorad: React.FC<Props> = ({
   changeStart,
   changeFinish,
   findPath,
+  switchTagsShow,
   distance,
 }) => {
   const [startOptions, setStartOptions] = useState<Build[]>([]);
@@ -129,6 +131,13 @@ const OperateBorad: React.FC<Props> = ({
           )}
         </div>
       </div>
+      <Switch
+        className={styles.tagsControl}
+        checkedChildren="显示标签"
+        unCheckedChildren="关闭标签"
+        defaultChecked
+        onChange={switchTagsShow}
+      />
     </>
   );
 };
